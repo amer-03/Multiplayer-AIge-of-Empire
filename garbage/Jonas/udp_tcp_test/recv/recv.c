@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 
 #define BUF_SIZE 1024
-#define PORT 50003
+#define PORT 50002
 
 void receive_pickle() {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
