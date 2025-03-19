@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #define BUF_SIZE 1024
-#define PORT 50002
+#define PORT 50003
 
 // Fonction pour extraire l'adresse IP de l'émetteur
 void get_sender_ip(struct sockaddr_in *sender_addr, char *ip_buffer, size_t buffer_size) {
