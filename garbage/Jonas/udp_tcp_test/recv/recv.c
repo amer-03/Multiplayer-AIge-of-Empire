@@ -1,5 +1,4 @@
-// read the file from the sender, write it in obj.pickle
-// recv.c : Réception d'un fichier .pickle via UDP sur le port 50003
+// recv.c : Réception d'un fichier .pickle via UDP sur le port 50002
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +7,11 @@
 
 #define BUF_SIZE 1024
 #define PORT 50002
+
+// Fonction pour extraire l'adresse IP de l'émetteur
+void get_sender_ip(struct sockaddr_in *sender_addr, char *ip_buffer, size_t buffer_size) {
+    inet_ntop(AF_INET, &(sender_addr->sin_addr), ip_buffer, buffer_size);
+}
 
 void receive_pickle() {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -18,6 +22,7 @@ void receive_pickle() {
 
     struct sockaddr_in local_addr, sender_addr;
     socklen_t sender_len = sizeof(sender_addr);
+    char sender_ip[INET_ADDRSTRLEN];
 
     local_addr.sin_family = AF_INET;
     local_addr.sin_port = htons(PORT);
@@ -33,6 +38,7 @@ void receive_pickle() {
     char filename[256];
     int n;
 
+    // Réception du nom de fichier + extraction de l'IP du sender
     n = recvfrom(sockfd, filename, sizeof(filename), 0, (struct sockaddr*)&sender_addr, &sender_len);
     if (n <= 0) {
         perror("recvfrom filename");
@@ -41,9 +47,12 @@ void receive_pickle() {
     }
     filename[n] = '\0';
 
-    printf("Réception du fichier : %s\n", filename);
+    // Récupérer l'IP du sender
+    get_sender_ip(&sender_addr, sender_ip, sizeof(sender_ip));
 
-    FILE *file = fopen(filename, "wb");
+    printf("Réception du fichier : %s depuis %s\n", filename, sender_ip);
+
+    FILE *file = fopen("obj.pickle", "wb"); // Sauvegarde sous obj.pickle
     if (!file) {
         perror("fopen");
         close(sockfd);
@@ -61,7 +70,7 @@ void receive_pickle() {
         fwrite(buffer, 1, n, file);
     }
 
-    printf("'%s' reçu et enregistré avec succès.\n", filename);
+    printf("'%s' reçu et enregistré sous 'obj.pickle' avec succès.\n", filename);
 
     fclose(file);
     close(sockfd);
