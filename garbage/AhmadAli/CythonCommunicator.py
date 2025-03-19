@@ -3,18 +3,12 @@ import select
 import time
 
 class CythonCommunicator:
-    def __init__(self, recv_port, send_port, send_ip="127.0.0.1"):
-        """Initialize the communicator with specified ports and IP.
-
-        Args:
-            recv_port (int): Port to listen on
-            send_port (int): Port to send to
-            send_ip (str): IP address to send to (default: 127.0.0.1)
-        """
-        self.recv_port = recv_port
-        self.send_port = send_port
-        self.send_ip = send_ip
-        self.send_addr = (send_ip, send_port)
+    def __init__(self, python_port, c_port, c_ip="127.0.0.1"):
+        """Initialize the communicator with specified ports and IP"""
+        self.python_port = python_port
+        self.c_port = c_port
+        self.c_ip = c_ip
+        self.c_addr = (c_ip, c_port)
         self.buffer_size = 1024
 
 
@@ -23,24 +17,18 @@ class CythonCommunicator:
 
         # Create and configure socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('0.0.0.0', recv_port))
+        self.sock.bind(('0.0.0.0', python_port))
         self.sock.setblocking(False)
 
-        print(f"[+] Initialized communicator (recv_port: {recv_port}, send_port: {send_port}, send_ip: {send_ip})")
+        print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 
     def send_message(self, message):
-        """Send a message to the configured address.
-
-        Args:
-            message (str): Message to send
-
-        Returns:
-            bool: True if message was sent successfully, False otherwise
-        """
+        """Send a message to the configured address. """
+        
         try:
             if isinstance(message, str):
                 message = message.encode('utf-8')
-            self.sock.sendto(message, self.send_addr)
+            self.sock.sendto(message, self.c_addr)
             print(f"[+] Sent: {message.decode() if isinstance(message, bytes) else message}")
             return True
 
@@ -49,11 +37,8 @@ class CythonCommunicator:
             return False
 
     def receive_message(self):
-        """Receive a message (non-blocking).
+        """Receive a message (non-blocking)."""
 
-        Returns:
-            tuple: (message, address) if a message was received, (None, None) otherwise
-        """
         try:
             ready = select.select([self.sock], [], [], 0)
             if ready[0]:
@@ -66,11 +51,7 @@ class CythonCommunicator:
         return None, None
 
     def should_send_message(self):
-        """Check if it's time to send a new message.
-
-        Returns:
-            bool: True if it's time to send a new message, False otherwise
-        """
+        """Checks if it's time to send a new message. """
         current_time = time.time()
         if current_time - self.last_send_time >= self.message_interval:
             self.last_send_time = current_time
@@ -78,33 +59,22 @@ class CythonCommunicator:
         return False
 
     def cleanup(self):
-        """Close the socket and clean up resources."""
         if hasattr(self, 'sock'):
             self.sock.close()
             print("[+] Communicator cleaned up")
 
     def __del__(self):
-        """Destructor to ensure the socket is closed."""
         self.cleanup()
 
 
 def main():
-    """Main function to run the communication loop."""
-    # Initialize communicator (listening on 50000, sending to 50001)
-    comm = CythonCommunicator(recv_port=50000, send_port=50001)
-
+    comm = CythonCommunicator(python_port=50000, c_port=50001)
     print("[+] Starting communication loop (Press Ctrl+C to exit)")
 
     try:
         while True:
-            # Check for received messages
             comm.receive_message()
-
-            # Send periodic message
-            #if comm.should_send_message():
             comm.send_message("message from Python")
-
-            # Sleep a little to prevent CPU hogging
             time.sleep(0.01)
 
     except KeyboardInterrupt:
