@@ -13,6 +13,10 @@
 #define BUFFER_SIZE 1024
 #define FLAGS 0
 #define MESSAGE_INTERVAL 0 // seconds between messages
+#define PYTHON_PORT 50000
+#define C_PORT 50001
+#define LOCALHOST "127.0.0.1"
+#define SLEEP_TIME 10000
 
 typedef struct {
     int sockfd;                     // Socket file descriptor
@@ -28,7 +32,6 @@ typedef struct {
 CythonCommunicator* init_communicator(int c_port, int python_port, const char* python_ip);
 int send_message(CythonCommunicator* comm, const char* message);
 int receive_message(CythonCommunicator* comm);
-int should_send_message(CythonCommunicator* comm);
 void cleanup_communicator(CythonCommunicator* comm);
 
 #endif // COMMUNICATOR_H

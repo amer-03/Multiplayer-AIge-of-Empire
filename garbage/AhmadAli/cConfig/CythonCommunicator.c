@@ -52,14 +52,12 @@ CythonCommunicator* init_communicator(int c_port, int python_port, const char* p
         return NULL;
     }
 
-    printf("[+] Initialized communicator (c_port: %d, python_port: %d, python_ip: %s)\n",
-           c_port, python_port, python_ip);
+    printf("[+] Initialized communicator (c_port: %d, python_port: %d, python_ip: %s)\n", c_port, python_port, python_ip);
     return comm;
 }
 
 int send_message(CythonCommunicator* comm, const char* message) {
-    int result = sendto(comm->sockfd, message, strlen(message), 0,
-                       (struct sockaddr*)&comm->python_addr, sizeof(comm->python_addr));
+    int result = sendto(comm->sockfd, message, strlen(message), 0, (struct sockaddr*)&comm->python_addr, sizeof(comm->python_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Send failed");
@@ -74,28 +72,17 @@ int receive_message(CythonCommunicator* comm) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
 
-    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0,
-                           (struct sockaddr*)&sender_addr, &addr_len);
+    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender_addr, &addr_len);
 
     if (recv_len > 0) {
         comm->recv_buffer[recv_len] = '\0';
-        printf("[+] Received: %s from %s:%d\n", comm->recv_buffer,
-               inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
+        printf("[+] Received: %s from %s:%d\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
         return recv_len;
     } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
         perror("Receive failed");
     }
 
     return -1;
-}
-
-int should_send_message(CythonCommunicator* comm) {
-    time_t current_time = time(NULL);
-    if (current_time - comm->last_send_time >= MESSAGE_INTERVAL) {
-        comm->last_send_time = current_time;
-        return 1;
-    }
-    return 0;
 }
 
 void cleanup_communicator(CythonCommunicator* comm) {

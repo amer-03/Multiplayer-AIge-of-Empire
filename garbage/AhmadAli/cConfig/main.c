@@ -1,7 +1,7 @@
 #include "CythonCommunicator.h"
 
 int main() {
-    CythonCommunicator* comm = init_communicator(50001, 50000, "127.0.0.1");
+    CythonCommunicator* comm = init_communicator(C_PORT, PYTHON_PORT, LOCALHOST);
     if (!comm) {
         fprintf(stderr, "Failed to initialize communicator\n");
         return EXIT_FAILURE;
@@ -11,10 +11,8 @@ int main() {
 
     while (1) {
         receive_message(comm);
-        if (should_send_message(comm)) {
-            send_message(comm, "message from C");
-        }
-        usleep(10000);
+        send_message(comm, "message from C");
+        usleep(SLEEP_TIME);
     }
 
     // Clean up (this part won't be reached due to infinite loop)
