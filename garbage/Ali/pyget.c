@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#define PORT 50000
+#define PORT 50001
 #define BUFFER_SIZE 1024
 #define FLAGS 0
 #define INFO_BUFFER_SIZE 100
