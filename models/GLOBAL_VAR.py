@@ -96,6 +96,10 @@ JOIN = 6
 END = 3
 CONFIG = 5
 
+#all ip
+
+ALL_IP = []
+
 #map
 
 MAP_NORMAL = 0

@@ -146,6 +146,7 @@ class CreateMenu:
 
     def handle_click(self, pos):
         """Handle clicks on buttons."""
+        #print("je cliqueeeeeee")
         if self.buttons["left_map_x"].collidepoint(pos):
             self.map_cell_count_x = max(120, self.map_cell_count_x - 5)
         elif self.buttons["right_map_x"].collidepoint(pos):

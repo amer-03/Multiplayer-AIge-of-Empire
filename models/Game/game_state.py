@@ -66,6 +66,18 @@ class GameState:
         self.terminal_camera = TerminalCamera()
         self.display_mode = ISO2D # Mode d'affichage par défaut
 
+    def go_to_discover_menu(self):
+        self.states = JOIN
+        self.speed = 1
+        self.selected_map_type = MAP_NORMAL
+        self.selected_mode = LEAN
+        self.selected_players = 2
+        self.map = Map(MAP_CELLX, MAP_CELLY)
+        self.display_mode = ISO2D # Mode d'affichage par défaut
+        self.camera = Camera()
+        self.terminal_camera = TerminalCamera()
+        self.display_mode = ISO2D # Mode d'affichage par défaut
+
     def endgame(self):
         if self.map.state == "end":
             self.states = END
