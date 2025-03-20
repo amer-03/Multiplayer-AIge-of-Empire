@@ -57,10 +57,16 @@ class GameLoop:
                 if self.state.states == PAUSE:
                     self.state.states = PLAY
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.joinmenu.handle_click(event.pos):
-                # Handle the click event for the join menu
-                pass
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
+            print("Mouse button down")
+            self.joinmenu.handle_click(event.pos)
+
+        elif event.type == pygame.MOUSEWHEEL:
+            # Événement molette transmis à JoinMenu
+            self.joinmenu.scroll(event.y)
+
+
 
     def handle_create_events(self, event):
         if pygame.key.get_pressed()[pygame.K_F12]:
