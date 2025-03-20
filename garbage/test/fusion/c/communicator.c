@@ -72,8 +72,11 @@ char* receive_query(Communicator* comm) {
     socklen_t addr_len = sizeof(sender_addr);
     memset(comm->recv_buffer, 0, BUFFER_SIZE);
     
+
     int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender_addr, &addr_len);
-    if (recv_len > 0) {
+    const char* sender_ip = inet_ntoa(sender_addr.sin_addr);
+
+    if (recv_len > 0 && strcmp(sender_ip, "127.0.0.1") == 0){
         comm->recv_buffer[recv_len] = '\0';  // Null-terminate the received data
         printf("[+] Received: %s from %s:%d\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
         return comm->recv_buffer;  // Correct return value
