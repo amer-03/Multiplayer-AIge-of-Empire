@@ -69,7 +69,7 @@ int send_query(Communicator* comm, const char* query) {
     if (destination_port != PYTHON_PORT){
     	snprintf(buffer, BUFFER_SIZE, "%s:%s", comm->instance_id, query);
     } else {
-        snprintf(buffer, BUFFER_SIZE, "%s", comm->instance_id, query);
+        snprintf(buffer, BUFFER_SIZE, "%s", query);
     }
 
     int result = sendto(comm->sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
@@ -120,7 +120,7 @@ char* receive_query(Communicator* comm) {
             printf("[+] Received message without proper ID format: %s from %s:%d\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
             return comm->recv_buffer;
         }
-        
+
     } else if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
         perror("Receive failed");
     }

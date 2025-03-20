@@ -9,9 +9,6 @@ int main() {
         return EXIT_FAILURE;
     }
     
-    char* internal_query = malloc(sizeof(char)*BUFFER_SIZE);
-    char* external_query = malloc(sizeof(char)*BUFFER_SIZE);
-
     printf("[+] Starting communication loop (Press Ctrl+C to exit)\n");
     
     while (1) {
