@@ -2,7 +2,7 @@ import pygame
 import tkinter as tk
 from tkinter import messagebox, Button, Tk
 
-from ImageProcessingDisplay import UserInterface, EndMenu, StartMenu, PauseMenu, IAMenu
+from ImageProcessingDisplay import UserInterface, EndMenu, StartMenu, PauseMenu, IAMenu, CreateMenu #JoinMenu
 from GLOBAL_VAR import *
 from Game.game_state import * 
 
@@ -25,6 +25,8 @@ class GameLoop:
         self.state.set_screen_size(self.screen.get_width(), self.screen.get_height())
         self.startmenu = StartMenu(self.screen)
         self.pausemenu = PauseMenu(self.screen)
+        self.createmenu = CreateMenu(self.screen)
+        #self.iamenu = JoinMenu(self.screen)
         self.endmenu = EndMenu(self.screen)
         self.ui = UserInterface(self.screen)
         self.action_in_progress = False
@@ -43,7 +45,21 @@ class GameLoop:
                     self.state.states = PLAY
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.startmenu.handle_click(event.pos, self.state)
 
+
+    def handle_create_events(self, event):
+        if pygame.key.get_pressed()[pygame.K_F12]:
+            loaded = self.state.load()
+            if loaded:
+                pygame.display.set_mode(
+                    (self.state.screen_width, self.state.screen_height),
+                    pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE,
+                )
+                if self.state.states == PAUSE:
+                    self.state.states = PLAY
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if self.startmenu.handle_click(event.pos):
                 self.state.set_map_size(self.startmenu.map_cell_count_x, self.startmenu.map_cell_count_y)
                 self.state.set_map_type(self.startmenu.map_options[self.startmenu.selected_map_index])
@@ -193,6 +209,10 @@ class GameLoop:
             self.startmenu.draw()
         elif self.state.states == CONFIG:
             self.iamenu.draw()
+        elif self.state.states == JOIN:
+            self.joinmenu.draw()
+        elif self.state.states == CREATE:
+            self.createmenu.draw()
         elif self.state.states == PAUSE:
             self.pausemenu.draw()
         elif self.state.states == END:
