@@ -56,10 +56,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         free(comm);
         return NULL;
     }
-    printf("[+] Initialized communicator (ID: %s, listener %s:%d, destination %s:%d)\n", 
-           comm->instance_id, inet_ntoa(comm->listener_addr.sin_addr), 
-           ntohs(comm->listener_addr.sin_port), inet_ntoa(comm->destination_addr.sin_addr), 
-           ntohs(comm->destination_addr.sin_port));
+    printf("[+] Initialized communicator (ID: %s, listener %s:%d, destination %s:%d)\n",  comm->instance_id, inet_ntoa(comm->listener_addr.sin_addr),  ntohs(comm->listener_addr.sin_port), inet_ntoa(comm->destination_addr.sin_addr), ntohs(comm->destination_addr.sin_port));
 
     return comm;
 }
@@ -71,7 +68,10 @@ int send_query(Communicator* comm, const char* query) {
     
     if (destination_port != PYTHON_PORT){
     	snprintf(buffer, BUFFER_SIZE, "%s:%s", comm->instance_id, query);
+    } else {
+        snprintf(buffer, BUFFER_SIZE, "%s", comm->instance_id, query);
     }
+
     int result = sendto(comm->sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -88,8 +88,7 @@ char* receive_query(Communicator* comm) {
     socklen_t addr_len = sizeof(sender_addr);
     memset(comm->recv_buffer, 0, BUFFER_SIZE);
     
-    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, 
-                           (struct sockaddr*)&sender_addr, &addr_len);
+    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender_addr, &addr_len);
     
     if (recv_len > 0) {
         comm->recv_buffer[recv_len] = '\0';  // Null-terminate the received data
@@ -114,17 +113,14 @@ char* receive_query(Communicator* comm) {
             // to return just the message without the ID
             char* message_content = colon + 1;
             memmove(comm->recv_buffer, message_content, strlen(message_content) + 1);
-            printf("[+] Received: %s from %s:%d (Sender ID: %s)\n", 
-                   comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), 
-                   ntohs(sender_addr.sin_port), msg_id);
+            printf("[+] Received: %s from %s:%d (Sender ID: %s)\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port), msg_id);
             return comm->recv_buffer;
         } else {
             // No valid ID format found, just return as is but log a warning
-            printf("[+] Received message without proper ID format: %s from %s:%d\n", 
-                   comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), 
-                   ntohs(sender_addr.sin_port));
+            printf("[+] Received message without proper ID format: %s from %s:%d\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
             return comm->recv_buffer;
         }
+        
     } else if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
         perror("Receive failed");
     }

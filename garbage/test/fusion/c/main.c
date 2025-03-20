@@ -2,7 +2,7 @@
 
 int main() {
     Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP, TRUE, TRUE);
-    Communicator* external_communicator = init_communicator(C_PORT2, C_PORT2, BROADCAST_IP, TRUE, TRUE);
+    Communicator* external_communicator = init_communicator(C_PORT2, EXTERNAL_PORT, BROADCAST_IP, TRUE, TRUE);
     
     if (!python_communicator || !external_communicator) {
         fprintf(stderr, "Failed to initialize communicators\n");
