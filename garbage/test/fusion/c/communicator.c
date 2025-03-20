@@ -20,7 +20,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         free(comm);
         return NULL;
     }
-    
+
     if (setsockopt(comm->sockfd, SOL_SOCKET, SO_REUSEADDR, &REUSEADDR_FLAG, sizeof(REUSEADDR_FLAG)) < 0) {
         perror("setsockopt SO_REUSEADDR failed");
         close(comm->sockfd);
@@ -38,7 +38,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     comm->listener_addr.sin_family = AF_INET;
     comm->listener_addr.sin_port = htons(listener_port);
     comm->listener_addr.sin_addr.s_addr = INADDR_ANY;
-    
+
     //Destination address
     memset(&comm->destination_addr, 0, sizeof(comm->destination_addr));
     comm->destination_addr.sin_family = AF_INET;
@@ -71,16 +71,16 @@ char* receive_query(Communicator* comm) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
     memset(comm->recv_buffer, 0, BUFFER_SIZE);
-    
+
 
     int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender_addr, &addr_len);
     const char* sender_ip = inet_ntoa(sender_addr.sin_addr);
 
-    if (recv_len > 0 && strcmp(sender_ip, "127.0.0.1") != 0){
+    if (recv_len > 0){
         comm->recv_buffer[recv_len] = '\0';  // Null-terminate the received data
         printf("[+] Received: %s from %s:%d\n", comm->recv_buffer, inet_ntoa(sender_addr.sin_addr), ntohs(sender_addr.sin_port));
         return comm->recv_buffer;  // Correct return value
-    
+
     } else if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
         perror("Receive failed");
     }
