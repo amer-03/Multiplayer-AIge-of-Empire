@@ -153,8 +153,8 @@ tree = DecisionNode(
         ),
     no_action=DecisionNode(
         check_housing,
-        yes_action=housing_crisis,    
-        no_action=DecisionNode(    
+        yes_action=housing_crisis,
+        no_action=DecisionNode(
             villagers_insufficient,
             yes_action=train_villager,
             no_action=DecisionNode(
@@ -181,7 +181,7 @@ def choose_strategy(Player):
         icon='question',
         title='AIge Of EmpAIres II'
     )
-    
+
     if answer:
         global result
         result = []
@@ -201,8 +201,8 @@ def choose_strategy(Player):
                 result.append("aggressive")
                 result.append(agressive_select)
                 result.append(defense_select)
-            
-            
+
+
 
         def on_button_click():
             get_ia_values()
@@ -253,7 +253,7 @@ def choose_strategy(Player):
         return result
 
 class Player:
-    
+
     def __init__(self, cell_Y, cell_X, team):
         self.team = team
         self.cell_Y = cell_Y
@@ -284,7 +284,7 @@ class Player:
         if entity_dict == None:
             self.entities_dict[entity.representation] = {}
             entity_dict = self.entities_dict.get(entity.representation, None)
-        
+
         entity_dict[entity.id] = entity
 
         is_habitat = False
@@ -300,12 +300,12 @@ class Player:
             self.houses_id.add(entity.id)
 
     def remove_entity(self, entity):
-        
+
         entity_dict = self.entities_dict.get(entity.representation, None)
         if entity_dict:
             entity_dict.pop(entity.id, None)
-            
-            if not entity_dict: # if empty remove 
+
+            if not entity_dict: # if empty remove
                 self.entities_dict.pop(entity.representation, None)
             is_habitat = False
             is_storage = False
@@ -331,7 +331,7 @@ class Player:
                 for _ in range(entity_population):
                     self.add_population()
 
-                
+
             return 1
         return 0
 
@@ -340,14 +340,14 @@ class Player:
         if representation in CLASS_MAPPING:
             InstClass = CLASS_MAPPING.get(representation, None)
 
-            Instance = InstClass(IdGenerator(), None, None, None, self.team) # fake instance 
+            Instance = InstClass(IdGenerator(), None, None, None, self.team) # fake instance
 
             return Instance.affordable_by(self.get_current_resources())
 
     def get_entities_by_class(self, representations, is_free = False): # list of representations for exemple : ['a', 'h', 'v']
 
         id_list = []
-        
+
         for representation in representations:
             entity_dict = self.entities_dict.get(representation, None)
 
@@ -369,10 +369,10 @@ class Player:
             if entity_id == None:
                 if (representation in ["T","H"]) and (len(self.get_entities_by_class(["T","H"])) * 5) >= MAX_UNIT_POPULATION:
                     return BUILDING_POPULATION_MAX_LIMIT
-                
+
                 BuildingClass = CLASS_MAPPING.get(representation, None)
                 Instance = BuildingClass(self.linked_map.id_generator,None, None, None, self.team)
-                
+
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
                     self.remove_resources(Instance.cost)
                     Instance.state = BUILDING_INPROGRESS
@@ -383,10 +383,12 @@ class Player:
 
                         if villager != None:
                             villager.build_entity(Instance.id)
-                
+
                     return 1
+                """
                 else:
                     self.linked_map.id_generator.free_ticket(Instance.id)
+                """
                 return 0
             else:
                 for villager_id in villager_id_list:
@@ -401,11 +403,11 @@ class Player:
 
 
     def distribute_evenly(self, resource_type, amount):
-        
+
         actual_ids = set()
 
         for storage_id in self.storages_id:
-            current_storage = self.linked_map.get_entity_by_id(storage_id) 
+            current_storage = self.linked_map.get_entity_by_id(storage_id)
             if current_storage.state == BUILDING_ACTIVE:
                 actual_ids.add(storage_id)
 
@@ -418,7 +420,7 @@ class Player:
 
         for storage_id in actual_ids:
             current_storage = self.linked_map.get_entity_by_id(storage_id)
-            
+
             current_storage.storage.add_resource(resource_type, per_storage + (1 if leftover > 0 else 0))
             if leftover > 0:
                 leftover -= 1
@@ -429,7 +431,7 @@ class Player:
         actual_ids = set()
 
         for storage_id in self.storages_id:
-            current_storage = self.linked_map.get_entity_by_id(storage_id) 
+            current_storage = self.linked_map.get_entity_by_id(storage_id)
             if current_storage.state == BUILDING_ACTIVE:
                 actual_ids.add(storage_id)
 
@@ -451,7 +453,7 @@ class Player:
         for resource, amount in resources.items():
             self.distribute_evenly(resource, amount)
 
-    
+
     def remove_resources(self, resources):
         for resource, amount in resources.items():
             self.remove_from_largest(resource, amount)
@@ -462,10 +464,10 @@ class Player:
         actual_ids = set()
 
         for storage_id in self.storages_id:
-            current_storage = self.linked_map.get_entity_by_id(storage_id) 
+            current_storage = self.linked_map.get_entity_by_id(storage_id)
             if current_storage.state == BUILDING_ACTIVE:
                 actual_ids.add(storage_id)
-                
+
         for storage_id in actual_ids:
             current_storage = self.linked_map.get_entity_by_id(storage_id)
 
@@ -476,7 +478,7 @@ class Player:
     """
     def remove_storage(self, toremove_storage_id):
         toremove_storage = self.linked_map.get_entity_by_id(toremove_storage_id)
-        resources = toremove_storage.storage.resources 
+        resources = toremove_storage.storage.resources
 
         self.storages_id.remove(toremove_storage_id)
 
@@ -488,7 +490,7 @@ class Player:
         actual_ids = set()
 
         for house_id in self.houses_id:
-            current_habitat = self.linked_map.get_entity_by_id(house_id) 
+            current_habitat = self.linked_map.get_entity_by_id(house_id)
             if current_habitat.state == BUILDING_ACTIVE:
                 actual_ids.add(house_id)
 
@@ -507,7 +509,7 @@ class Player:
         actual_ids = set()
 
         for house_id in self.houses_id:
-            current_habitat = self.linked_map.get_entity_by_id(house_id) 
+            current_habitat = self.linked_map.get_entity_by_id(house_id)
             if current_habitat.state == BUILDING_ACTIVE:
                 actual_ids.add(house_id)
 
@@ -519,11 +521,11 @@ class Player:
                 if current_habitat.habitat.add_population():
                     return True
         return False
-    
+
     def remove_population(self):
         actual_ids = set()
         for house_id in self.houses_id:
-            current_habitat = self.linked_map.get_entity_by_id(house_id) 
+            current_habitat = self.linked_map.get_entity_by_id(house_id)
             if current_habitat.state == BUILDING_ACTIVE:
                 actual_ids.add(house_id)
 
@@ -560,7 +562,7 @@ class Player:
                 ent_ids = self.get_entities_by_class(ent_repr)
             else:
                 ent_ids = self.linked_map.resource_id_dict.get(ent_repr, None)
-                
+
             if ent_ids:
 
                 closest_dist = float('inf')
@@ -573,7 +575,7 @@ class Player:
 
                         if is_dead and current_entity.is_dead():
                             compute = False
-                            
+
                         if compute:
                             current_dist = math.dist([current_entity.cell_X, current_entity.cell_Y], [cell_X, cell_Y])
 
@@ -600,7 +602,7 @@ class Player:
                         compute = True
                         if is_dead and current_entity.is_dead():
                             compute = False
-                        
+
                         if compute:
                             current_dist = math.dist([current_entity.cell_X, current_entity.cell_Y], [cell_X, cell_Y])
                             entity_distances.append((current_entity.id, current_dist))
