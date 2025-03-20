@@ -1,17 +1,11 @@
 #include "CythonCommunicator.h"
 
-CythonCommunicator* init_communicator(int c_port, int python_port, const char* python_ip) {
+CythonCommunicator* init_cython_communicator(int c_port, int python_port, const char* python_ip) {
     CythonCommunicator* comm = (CythonCommunicator*)malloc(sizeof(CythonCommunicator));
     if (!comm) {
         perror("Memory allocation failed");
         return NULL;
     }
-
-    // Store configuration
-    comm->c_port = c_port;
-    comm->python_port = python_port;
-    comm->python_ip = strdup(python_ip);
-    comm->last_send_time = 0;
 
     // Create socket
     if ((comm->sockfd = socket(AF_INET, SOCK_DGRAM, FLAGS)) < 0) {
