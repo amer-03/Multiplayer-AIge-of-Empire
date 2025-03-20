@@ -70,3 +70,17 @@ class NetworkQueryFormatter:
         """
 
         return f"A/player_build_entity+{player_team}:{actors_id}:{representation}:{entity_id}"
+
+    @staticmethod
+    def format_config_resp(seed, cellY, cellX, num_players, mode):
+
+        """
+        seed : map seed
+        cellY : height of the map
+        cellX : width of the map
+        num_players : number of players
+        mode : starting mode of the game
+
+        """
+
+        return f"C/config_resp+{seed}:{cellY}:{cellX}:{num_players}:{mode}"
