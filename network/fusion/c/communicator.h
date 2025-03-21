@@ -36,13 +36,13 @@ typedef struct {
     char instance_id[ID_SIZE];
 } Communicator;
 
-static inline void generate_instance_id(Communicator* comm);
-static inline Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG);
-static inline char* construct_packet(Communicator* comm, char* query);
-static inline int send_packet(Communicator* comm, const char* message);
-static inline char* process_packet(char* packet, char* packet_id);
-static inline void log_message(const char* message, const struct sockaddr_in* sender_addr, const char* packet_id);
-static inline char* receive_packet(Communicator* comm);
-static inline void cleanup_communicator(Communicator* comm);
+void generate_instance_id(Communicator* comm);
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG);
+void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
+int send_packet(Communicator* comm, const char* message);
+char* process_packet(char* packet, char* packet_id, size_t id_size);
+void log_message(const char* message, const struct sockaddr_in* sender_addr, const char* packet_id);
+char* receive_packet(Communicator* comm);
+void cleanup_communicator(Communicator* comm);
 
 #endif // COMMUNICATOR_H

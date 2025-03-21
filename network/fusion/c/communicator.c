@@ -5,7 +5,7 @@ static inline void generate_instance_id(Communicator* comm) {
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
 
-static inline Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG) {
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG) {
     Communicator* comm = (Communicator*)malloc(sizeof(Communicator));
     if (!comm) {
         perror("Memory allocation failed");
@@ -67,19 +67,21 @@ static inline Communicator* init_communicator(int listener_port, int destination
     return comm;
 }
 
-static inline char* construct_packet(Communicator* comm, char* query) {
-    if (destination_port != PYTHON_PORT){
-        snprintf(query, BUFFER_SIZE, "%s:%s", comm->instance_id, query);
+void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size) {
+    if (ntohs(comm->destination_addr.sin_port) != PYTHON_PORT){
+        snprintf(packet, packet_size, "%s:%s", comm->instance_id, query);
+    } else {
+        strncpy(packet, query, packet_size - 1);
+        packet[packet_size - 1] = '\0';
     }
-
-    return query;
 }
 
-static inline int send_packet(Communicator* comm, const char* query) {
+int send_packet(Communicator* comm, const char* query) {
     char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
     int destination_port = ntohs(comm->destination_addr.sin_port);
 
-    char* packet = construct_packet(comm, query);
+    char packet[BUFFER_SIZE];
+    construct_packet(comm, query, packet, BUFFER_SIZE);
 
     int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
@@ -92,7 +94,7 @@ static inline int send_packet(Communicator* comm, const char* query) {
     return result;
 }
 
-static inline char* process_packet(char* packet, char* packet_id) {
+char* process_packet(char* packet, char* packet_id, size_t id_size) {
     char* separator = strchr(packet, SEPARATOR);
     
     if (!separator) {
@@ -100,21 +102,24 @@ static inline char* process_packet(char* packet, char* packet_id) {
         return packet;
     }
     
-    memcpy(packet_id, packet, ID_SIZE);
-    packet_id[ID_SIZE] = '\0';
+    size_t id_length = separator - packet;
+    size_t copy_size = (id_length < id_size - 1) ? id_length : id_size - 1;
+    
+    memcpy(packet_id, packet, copy_size);
+    packet_id[copy_size] = '\0';
     
     return separator + 1;
 }
 
-static inline void log_message(const char* query, const struct sockaddr_in* sender_addr, const char* packet_id) {
+void log_message(const char* query, const struct sockaddr_in* sender_addr, const char* packet_id) {
     if (*packet_id) {
-        printf("[+] Received: %s from %s:%d (Sender ID: %s)\n", query, inet_ntoa(sender_addr->sin_addr), ntohs(sender_addr->sin_port), id);
+        printf("[+] Received: %s from %s:%d (Sender ID: %s)\n", query, inet_ntoa(sender_addr->sin_addr), ntohs(sender_addr->sin_port), packet_id);
     } else {
         printf("[+] Received query without proper ID format: %s from %s:%d\n", query, inet_ntoa(sender_addr->sin_addr), ntohs(sender_addr->sin_port));
     }
 }
 
-static inline char* receive_packet(Communicator* comm) {
+char* receive_packet(Communicator* comm) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
 
@@ -130,7 +135,7 @@ static inline char* receive_packet(Communicator* comm) {
     comm->recv_buffer[recv_len] = '\0';
     
     char packet_id[ID_SIZE];
-    char* query = process_packet(comm->recv_buffer, packet_id);
+    char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
     
     if (query != comm->recv_buffer) {
         size_t content_len = strlen(query);
@@ -142,7 +147,7 @@ static inline char* receive_packet(Communicator* comm) {
     return comm->recv_buffer;
 }
 
-static inline void cleanup_communicator(Communicator* comm) {
+void cleanup_communicator(Communicator* comm) {
     if (comm) {
         close(comm->sockfd);
         free(comm);
