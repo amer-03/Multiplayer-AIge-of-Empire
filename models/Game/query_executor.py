@@ -1,6 +1,13 @@
 from GameField.map import *
+
+
 import ast
+
 class QueryExecutor:
+
+    _fct_map = {
+
+    }
 
     @staticmethod
     def exe_attack_entity(game_map, argsf):
@@ -63,3 +70,7 @@ class QueryExecutor:
         _entity_id = ast.literal_eval(args[3]) # entity_id = None
 
         game_map.get_player_by_team(player_team).build_entity(villager_id_list, representation = _representation, entity_id = _entity_id )
+
+    @staticmethod
+    def handle_query(queryf):
+        pass
