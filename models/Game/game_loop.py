@@ -60,7 +60,7 @@ class GameLoop:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
             print("Mouse button down")
-            self.joinmenu.handle_click(event.pos)
+            self.joinmenu.handle_click(event.pos, self.state)
 
         elif event.type == pygame.MOUSEWHEEL:
             # Événement molette transmis à JoinMenu
@@ -80,7 +80,7 @@ class GameLoop:
                     self.state.states = PLAY
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.createmenu.handle_click(event.pos):
+            if self.createmenu.handle_click(event.pos, self.state):
                 self.state.set_map_size(self.createmenu.map_cell_count_x, self.createmenu.map_cell_count_y)
                 self.state.set_map_type(self.createmenu.map_options[self.createmenu.selected_map_index])
                 self.state.set_difficulty_mode(self.createmenu.selected_mode_index)

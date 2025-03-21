@@ -30,6 +30,9 @@ class CreateMenu:
         self.volume = 0.5  # Default volume (between 0.0 and 1.0)
 
         # Buttons
+
+        self.back_button = pygame.Rect(20, 20, 50, 50)
+        
         self.buttons = {
             "left_map_x": pygame.Rect(0, 0, 50, 50),
             "right_map_x": pygame.Rect(0, 0, 50, 50),
@@ -117,6 +120,12 @@ class CreateMenu:
 
         # Draw volume control slider
         self._draw_slider()
+        
+        pygame.draw.polygon(self.screen, (128, 128, 128), [
+            (self.back_button.x + 35, self.back_button.y + 10),
+            (self.back_button.x + 15, self.back_button.y + 25),
+            (self.back_button.x + 35, self.back_button.y + 40)
+        ])
 
     def _draw_slider(self):
         """Draw the volume slider and its thumb."""
@@ -144,9 +153,14 @@ class CreateMenu:
         text_rect = rendered_text.get_rect(center=pos if centered else None)
         self.screen.blit(rendered_text, text_rect if centered else pos)
 
-    def handle_click(self, pos):
+    def handle_click(self, pos, game_state):
         """Handle clicks on buttons."""
         #print("je cliqueeeeeee")
+
+        if self.back_button.collidepoint(pos):
+            game_state.go_to_main_menu()
+            return None
+
         if self.buttons["left_map_x"].collidepoint(pos):
             self.map_cell_count_x = max(120, self.map_cell_count_x - 5)
         elif self.buttons["right_map_x"].collidepoint(pos):

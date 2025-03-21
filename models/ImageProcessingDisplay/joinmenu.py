@@ -22,6 +22,8 @@ class JoinMenu:
             50
         )
 
+        self.back_button = pygame.Rect(20, 20, 50, 50)
+
         self.scroll_y = 0
         self.max_visible_lines = 6
         self.line_height = 40
@@ -74,8 +76,18 @@ class JoinMenu:
         join_text = self.font.render("Join", True, (255, 255, 255))
         self.screen.blit(join_text, join_text.get_rect(center=self.join_button.center))
 
-    def handle_click(self, pos):
+        pygame.draw.polygon(self.screen, (128, 128, 128), [
+            (self.back_button.x + 35, self.back_button.y + 10),
+            (self.back_button.x + 15, self.back_button.y + 25),
+            (self.back_button.x + 35, self.back_button.y + 40)
+        ])
+
+    def handle_click(self, pos, game_state):
         global SELECTED_IP
+
+        if self.back_button.collidepoint(pos):
+            game_state.go_to_main_menu()
+            return None
 
         if self.join_button.collidepoint(pos):
             if self.selected_ip is not None:
