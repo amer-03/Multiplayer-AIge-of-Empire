@@ -38,12 +38,12 @@ class CythonCommunicator:
             ready = select.select([self.sock], [], [], 0)
             if ready[0]:
                 data, addr = self.sock.recvfrom(self.buffer_size)
-                #print(f"[+] Received: {data.decode()} from {addr}")
+                print(f"[+] Received: {data.decode()} from {addr}")
                 return data.decode(), addr
         except Exception as e:
             if not isinstance(e, BlockingIOError):
                 print(f"[-] Receive failed: {str(e)}")
-        return None, None
+        return None
 
     def cleanup(self):
         if hasattr(self, 'sock'):

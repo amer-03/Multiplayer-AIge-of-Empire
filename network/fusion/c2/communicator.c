@@ -90,7 +90,7 @@ int send_packet(Communicator* comm, const char* query) {
         }
         return -1;
     }
-    printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+    //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
     return result;
 }
 
@@ -143,7 +143,7 @@ char* receive_packet(Communicator* comm) {
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
-    log_message(comm->recv_buffer, &sender_addr, packet_id);
+    //log_message(comm->recv_buffer, &sender_addr, packet_id);
     return comm->recv_buffer;
 }
 

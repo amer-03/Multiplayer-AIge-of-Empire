@@ -35,7 +35,7 @@ def main():
             counter += 1
             
             # Check for incoming messages (non-blocking)
-            if comm.receive_packet():
+            if comm.receive_packet() != None:
                 received_packets += 1
             
             # Check for user input (non-blocking)
@@ -61,7 +61,7 @@ def main():
                 last_stats_time = current_time
             
             # Small delay to prevent CPU from being maxed out
-            time.sleep(0.001)  # Very small delay to allow more packets to be sent
+            time.sleep(0.01)  # Very small delay to allow more packets to be sent
             
     except KeyboardInterrupt:
         print("\n[+] Exiting...")
