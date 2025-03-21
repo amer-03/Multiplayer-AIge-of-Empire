@@ -53,7 +53,7 @@ int main() {
         
         // Check if a second has passed and print statistics
         if (current_time > last_stats_time) {
-            printf("[STATS] Sent: %d packets/sec ID: %d | Received: %d packets/sec ID:%d \n", sent_packets, packet_number_sent, received_packets,received_packet_sent);
+            printf("[ID]:%s | [STATS] Sent: %d packets/sec ID:%d | Received: %d packets/sec ID:%d \n",external_query, sent_packets, packet_number_sent, received_packets,received_packet_sent);
             
             // Reset counters and update the time
             sent_packets = 0;
