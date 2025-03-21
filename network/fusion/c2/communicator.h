@@ -17,7 +17,7 @@
 #define ID_SIZE 10
 #define SEPARATOR ':'
 #define BUFFER_SIZE 2048
-#define RCVBUF_SIZE 8192
+#define RCVBUF_SIZE 1048576
 #define FLAGS 0
 #define SLEEP_TIME 10000
 
