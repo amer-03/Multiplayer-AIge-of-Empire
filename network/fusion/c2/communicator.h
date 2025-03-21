@@ -19,7 +19,7 @@
 #define BUFFER_SIZE 2048
 #define RCVBUF_SIZE 1048576
 #define FLAGS 0
-#define SLEEP_TIME 10000
+#define SLEEP_TIME 10
 
 #define PYTHON_PORT 50000
 #define C_PORT1 50001
