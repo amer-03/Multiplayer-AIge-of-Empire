@@ -26,21 +26,21 @@ class TrainingBuilding(Building):
         self.trainable_units = trainable_units
 
         self.time_left = None
-        
+
         self.unit_being_trained = None
 
 
     def try_to_train(self, dt):
-        
+
         if self.time_left != None and self.unit_being_trained:# if not None
-            
+
             if self.time_left > (1e-5):
-                
+
                 self.time_left = self.time_left - dt
             else:
-                
+
                 if self.unit_being_trained:
-                    
+
                     self.linked_map.add_entity_to_closest(self.unit_being_trained, self.cell_Y, self.cell_X)
 
                     self.unit_being_trained = None
@@ -64,7 +64,9 @@ class TrainingBuilding(Building):
 
                             self.time_left = self.unit_being_trained.training_time * ONE_SEC
                     else:
-                        self.linked_map.id_generator.free_ticket(unit.id)
+
+                        #self.linked_map.id_generator.free_ticket(unit.id)
+
                         return TRAIN_NOT_AFFORDABLE
                 else:
                     return TRAIN_NOT_FOUND_UNIT
@@ -72,8 +74,8 @@ class TrainingBuilding(Building):
                 return TRAIN_BUSY
         else:
             return TRAIN_NOT_ACTIVE
-                    
-            
+
+
     def display(self, dt, screen, camera, g_width, g_height):
         super().display(dt, screen, camera, g_width, g_height)
         if self.unit_being_trained:
@@ -88,4 +90,3 @@ class TrainingBuilding(Building):
 
     def is_free(self):
         return self.unit_being_trained == None and self.time_left == None
-
