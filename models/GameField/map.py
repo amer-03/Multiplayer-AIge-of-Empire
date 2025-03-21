@@ -33,6 +33,8 @@ class Map:
         self.id_generator = IdGenerator()
         self.state = "normal"
 
+    def get_player_by_team(self, _player_team):
+        return self.players_dict.get(_player_team, None)
 
     def get_entity_by_id(self, _entity_id):
         return self.entity_id_dict.get(_entity_id, None)

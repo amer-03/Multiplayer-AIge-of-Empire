@@ -72,6 +72,11 @@ class NetworkQueryFormatter:
         return f"A/player_build_entity+{player_team}:{actors_id}:{representation}:{entity_id}"
 
     @staticmethod
+    def format_config_req():
+
+        return f"C/config_req+{None}"
+
+    @staticmethod
     def format_config_resp(seed, cellY, cellX, num_players, mode):
 
         """

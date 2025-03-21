@@ -252,6 +252,12 @@ def choose_strategy(Player):
             result.append(defense)
         return result
 
+
+
+
+
+
+
 class Player:
 
     def __init__(self, cell_Y, cell_X, team):
@@ -624,9 +630,12 @@ class Player:
 
         self.update_population(dt)
 
+
+    def think(self, dt):
         self.refl_acc +=dt
         if self.refl_acc>ONE_SEC/3:
             self.player_turn(dt)
+
 
     def player_turn(self,dt):
         decision = self.game_handler.process_ai_decisions(self.decision_tree)
