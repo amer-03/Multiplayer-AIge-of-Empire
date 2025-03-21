@@ -1,6 +1,6 @@
 #include "communicator.h"
 
-static inline void generate_instance_id(Communicator* comm) {
+void generate_instance_id(Communicator* comm) {
     srand(time(NULL) ^ getpid());
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
