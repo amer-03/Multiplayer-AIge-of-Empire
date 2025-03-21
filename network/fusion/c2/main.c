@@ -17,6 +17,7 @@ int main() {
     int sent_packets = 0;
     int received_packets = 0;
     int received_packet_sent = 0;
+    char* last_query = NULL;
     time_t last_stats_time = time(NULL);
     
     while (1) {
@@ -35,6 +36,7 @@ int main() {
         if (external_query != NULL) {
             received_packets++;
             received_packet_sent++;
+            last_query = external_query;
         }
         
         // Process the external query if it exists
@@ -53,7 +55,7 @@ int main() {
         
         // Check if a second has passed and print statistics
         if (current_time > last_stats_time) {
-            printf("[ID]:%s | [STATS] Sent: %d packets/sec ID:%d | Received: %d packets/sec ID:%d \n",external_query, sent_packets, packet_number_sent, received_packets,received_packet_sent);
+            printf("[ID]:%s | [STATS] Sent: %d packets/sec ID:%d | Received: %d packets/sec ID:%d \n",last_query, sent_packets, packet_number_sent, received_packets,received_packet_sent);
             
             // Reset counters and update the time
             sent_packets = 0;
