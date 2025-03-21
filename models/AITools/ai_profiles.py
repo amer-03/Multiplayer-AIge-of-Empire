@@ -5,6 +5,9 @@ from GLOBAL_VAR import *
 import time
 from random import *
 
+from network.QueryProcessing.networkqueryformatter import *
+
+
 class AIProfile:
     def __init__(self, strategy, aggressiveness=1.0, defense=1.0):
         """
@@ -42,7 +45,7 @@ class AIProfile:
                             return
                         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
                         #v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
-                        
+
             return
         if keys_to_include is None:
             keys_to_include = target_ratios.keys()
@@ -90,7 +93,7 @@ class AIProfile:
                             if context['drop_off_id'] is None:
                                 return "Gathered resources"
                             v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
-                    return "Gathered resources" 
+                    return "Gathered resources"
 
     STOP_CONDITIONS = {TRAIN_NOT_AFFORDABLE, TRAIN_NOT_FOUND_UNIT, TRAIN_NOT_ACTIVE}
 
@@ -110,7 +113,7 @@ class AIProfile:
             seed(time.perf_counter())
             n = randint(0, 1)
             return units_list[n]
-        
+
     def closest_player(self,context):
         list_player = context['player'].linked_map.players_dict.values()
         distance = {}
@@ -121,7 +124,7 @@ class AIProfile:
                 distance[player] = (dx ** 2 + dy ** 2) ** 0.5
         closest = min(distance.items(), key=lambda x: x[1])
         return closest[0]
-    
+
     def closest_enemy_building(self,context):
         player = self.closest_player(context)
         minus_building = player.ect(BUILDINGS, player.cell_Y, player.cell_X)
@@ -134,8 +137,8 @@ class AIProfile:
             else:
                 return None
         return closest
-            
-                
+
+
 
 
     def decide_action(self,tree, context):
@@ -162,12 +165,12 @@ class AIProfile:
         Implement the aggressive strategy by prioritizing attacks and military training.
         """
         target_ratios_building = {
-            'T': 0.13,   
-            'C': 0.13,   
-            'F': 0.13,    
-            'B': 0.18,    
-            'S': 0.165,  
-            'A': 0.165,   
+            'T': 0.13,
+            'C': 0.13,
+            'F': 0.13,
+            'B': 0.18,
+            'S': 0.165,
+            'A': 0.165,
             'K': 0.1
         }
 
@@ -210,7 +213,7 @@ class AIProfile:
                     #         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
                     self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
                     return "Trained military units"
-                
+
                 elif action == "Building structure!":
                     self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
                     return "Structure are built!"
@@ -226,17 +229,17 @@ class AIProfile:
         """
         player = context['player']
         target_ratios_building = {
-            'T': 0.13,  
-            'C': 0.15,   
-            'F': 0.15,    
-            'B': 0.08,    
-            'S': 0.15,  
-            'A': 0.15,   
+            'T': 0.13,
+            'C': 0.15,
+            'F': 0.15,
+            'B': 0.08,
+            'S': 0.15,
+            'A': 0.15,
             'K': 0.19
         }
 
         try:
-            for action in actions:                
+            for action in actions:
                 if action == "Train military units!":
                     # Train military units in training buildings
                     training_buildings = context['buildings']['training']
@@ -244,7 +247,7 @@ class AIProfile:
                         keys_to_consider = ['S','A','T']
                         self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context,keys_to_consider)
                     for building in training_buildings:
-                        (context['player'].linked_map.get_entity_by_id(building)).train_unit(player, self.choose_units(context['player'].linked_map.get_entity_by_id(building)))  
+                        (context['player'].linked_map.get_entity_by_id(building)).train_unit(player, self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
                     resources_to_collect=("wood",'W')
                     for temp_resources in [("gold",'G'),("food",'F')]:
                         if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:
@@ -266,18 +269,18 @@ class AIProfile:
                     #         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
                     self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
                     return "Trained military units"
-                    
+
                 elif action == "Attacking the enemy!":
                     unit_list = context['units']['military_free'][:len(context['units']['military_free'])//2]
                     context['enemy_id'] = self.closest_enemy_building(context)
                     for unit in unit_list:
                         unit.attack_entity(context['enemy_id'])
                     return "Attacking in progress"
-                
+
                 elif action == "Building structure!":
                     self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
                     return "Structure are built!"
-                
+
         finally:
             context['player'].is_busy = False
 
@@ -287,12 +290,12 @@ class AIProfile:
         """
         player = context['player']
         target_ratios_building = {
-            'T': 0.2,   
-            'C': 0.12,   
-            'F': 0.2,    
-            'B': 0.12,    
-            'S': 0.12,  
-            'A': 0.12,   
+            'T': 0.2,
+            'C': 0.12,
+            'F': 0.2,
+            'B': 0.12,
+            'S': 0.12,
+            'A': 0.12,
             'K': 0.12
         }
 
@@ -345,7 +348,7 @@ class AIProfile:
                     for temp_resources in [("gold",'G'),("food",'F')]:
                         if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:
                             resources_to_collect=temp_resources
-                    
+
                     # v_ids = context['player'].get_entities_by_class(['v'],is_free=True)
                     # c_ids = context['player'].ect(resources_to_collect[1], context['player'].cell_Y, context['player'].cell_X)
                     # counter = 0
@@ -369,9 +372,9 @@ class AIProfile:
                     context['enemy_id'] = self.closest_enemy_building(context)
                     for unit in unit_list:
                         unit.attack_entity(context['enemy_id'])
-                        
+
                     return "Attacking in progress"
-                
+
                 elif action == "Building structure!":
                     self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
                     return "Structure are built!"
@@ -379,4 +382,3 @@ class AIProfile:
             context['player'].is_busy = False
         # Default to gathering resources if no actions are possible
         return "Gathered resources for balanced strategy"
-

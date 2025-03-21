@@ -11,7 +11,7 @@ class NetworkQueryFormatter:
         initial call is unit.attack_entity(target_id)
         """
 
-        return f"A/attack_entity+{actor_id}:{target_id}"
+        return f"A/ae+{actor_id}:{target_id}" # ae :attack_entity easier and lighter to send in the packet
 
     # villager
     @staticmethod
@@ -22,7 +22,7 @@ class NetworkQueryFormatter:
 
         initial call is villager.build_entity(build_target_id)
         """
-        return f"A/villager_build_entity+{actor_id}:{build_target_id}"
+        return f"A/vbe+{actor_id}:{build_target_id}" #vbe : villager_build_entity
 
     @staticmethod
     def format_drop_to_entity(actor_id, drop_target_id):
@@ -32,7 +32,7 @@ class NetworkQueryFormatter:
 
         initial call is villager.drop_to_entity(drop_target_id)
         """
-        return f"A/drop_to_entity+{actor_id}:{drop_target_id}"
+        return f"A/dte+{actor_id}:{drop_target_id}" # dte : drop_to_entity
 
     @staticmethod
     def format_collect_entity(actor_id, resource_target_id):
@@ -42,7 +42,7 @@ class NetworkQueryFormatter:
 
         initial call is villager.collect_entity(resource_target_id)
         """
-        return f"A/collect_entity+{actor_id}:{resource_target_id}"
+        return f"A/ce+{actor_id}:{resource_target_id}" # ce : collect_entity
 
     # traning building
     @staticmethod
@@ -54,7 +54,7 @@ class NetworkQueryFormatter:
 
         initial call is building.train_unit(player, entity_repr)
         """
-        return f"A/train_unit+{actor_id}:{player_team}:{entity_repr}"
+        return f"A/tu+{actor_id}:{player_team}:{entity_repr}" # tu : train_unit
 
     # player
     @staticmethod
@@ -69,7 +69,7 @@ class NetworkQueryFormatter:
         initial call player.build_entity(villager_id_list, representation = "", entity_id = None)
         """
 
-        return f"A/player_build_entity+{player_team}:{actors_id}:{representation}:{entity_id}"
+        return f"A/pbe+{player_team}:{actors_id}:{representation}:{entity_id}" # pbe : player_build_entity
 
     @staticmethod
     def format_config_req():

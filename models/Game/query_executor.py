@@ -5,10 +5,6 @@ import ast
 
 class QueryExecutor:
 
-    _fct_map = {
-
-    }
-
     @staticmethod
     def exe_attack_entity(game_map, argsf):
         args = argsf.split(":", 1) # 2 args
@@ -71,6 +67,21 @@ class QueryExecutor:
 
         game_map.get_player_by_team(player_team).build_entity(villager_id_list, representation = _representation, entity_id = _entity_id )
 
+
+    _fct_map = {
+            "ae": exe_attack_entity,
+            "vbe": exe_villager_build_entity,
+            "dte": exe_drop_to_entity,
+            "ce": exe_collect_entity,
+            "tu": exe_train_unit,
+            "pbe": exe_player_build_entity
+        }
+
     @staticmethod
-    def handle_query(queryf):
-        pass
+    def handle_query(game_map, queryf):
+
+        if queryf["headerf"] == "A": # action type queries
+            fct = QueryExecutor._fct_map.get(queryf["callf"], None)
+
+            if fct != None:
+                fct(game_map, queryf["argsf"])

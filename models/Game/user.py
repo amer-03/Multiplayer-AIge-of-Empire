@@ -28,18 +28,23 @@ class User:
 
         return None
 
-    def handle_all_queries(self):
+    def handle_all_queries(self, game_map):
 
         current_query = None
 
         while ((current_query := self.get_query()) != None):
-            QueryExecutor.handle_query(NetworkQueryParser.parse_query(current_query))
+            QueryExecutor.handle_query(game_map, NetworkQueryParser.parse_query(current_query))
 
 
-    def update(self, game_map):
+    def update(self, dt, game_map):
+        pass
+        # packet_rcvd, addr = self.communicator.receive_packet()
+        # if packet_rcvd != None:
+            # self.add_query(packet_rcvd)
 
-        # packet, addr = self.communicator.receive_packet()
-        # if packet != None:
-            # self.add_query(packet)
+        # self.handle_all_queries(game_map)
 
-        self.handle_all_queries()
+        # packet_snd = game_map.get_player_by_team(self.team).think(dt)
+
+        # if queryf != "":
+            # self.communicator.send_packet(packet_snd)
