@@ -1,7 +1,7 @@
 #include "CythonCommunicator.h"
 
 int main() {
-    CythonCommunicator* comm = init_communicator(C_PORT, PYTHON_PORT, LOCALHOST);
+    CythonCommunicator* comm = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST);
     if (!comm) {
         fprintf(stderr, "Failed to initialize communicator\n");
         return EXIT_FAILURE;
