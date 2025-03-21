@@ -136,14 +136,14 @@ char* receive_packet(Communicator* comm) {
     
     char packet_id[ID_SIZE];
     char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
-    
+    if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
+
     if (query != comm->recv_buffer) {
         size_t content_len = strlen(query);
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
     log_message(comm->recv_buffer, &sender_addr, packet_id);
-    
     return comm->recv_buffer;
 }
 
