@@ -29,7 +29,7 @@ def main():
             current_time = time.time()
             
             # Send packets as fast as possible
-            message = f"{counter}"
+            message = f"{counter} ooooooooooooooo" + ("X" * 10000)
             comm.send_packet(message)
             sent_packets += 1
             counter += 1
@@ -61,7 +61,7 @@ def main():
                 last_stats_time = current_time
             
             # Small delay to prevent CPU from being maxed out
-            time.sleep(0.01)  # Very small delay to allow more packets to be sent
+            time.sleep(0.02)  # Very small delay to allow more packets to be sent
             
     except KeyboardInterrupt:
         print("\n[+] Exiting...")

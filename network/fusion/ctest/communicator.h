@@ -14,12 +14,16 @@
 
 #define TRUE 1
 #define FALSE 0
+#define BUFFER_SIZE 1472
 #define ID_SIZE 10
 #define SEPARATOR ':'
-#define BUFFER_SIZE 1472
+
+#define REUSEADDR_FLAG 1
+#define BROADCAST_FLAG 1
 #define RCVBUF_SIZE 10485760
 #define SNDBUF_SIZE 10485760
-#define FLAGS 0
+#define SOCKET_PRIORITY 6
+
 #define SLEEP_TIME 1
 
 #define PYTHON_PORT 50000
@@ -39,7 +43,7 @@ typedef struct {
 } Communicator;
 
 void generate_instance_id(Communicator* comm);
-Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG);
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr);
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
 int send_packet(Communicator* comm, const char* message);
 char* process_packet(char* packet, char* packet_id, size_t id_size);

@@ -5,7 +5,7 @@ void generate_instance_id(Communicator* comm) {
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
 
-Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG) {
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr) {
     Communicator* comm = (Communicator*)malloc(sizeof(Communicator));
     if (!comm) {
         perror("Memory allocation failed");
@@ -15,12 +15,12 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     // Generate random unique ID
     generate_instance_id(comm);
 
-    // Create socket
     if ((comm->sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Socket creation failed");
         free(comm);
         return NULL;
     }
+
     //Non-blocking mode
     int flags = fcntl(comm->sockfd, F_GETFL, 0);
     if (fcntl(comm->sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
@@ -30,13 +30,16 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
     
-    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_REUSEADDR, &REUSEADDR_FLAG, sizeof(REUSEADDR_FLAG)) < 0) {
+    int reuseaddr = REUSEADDR_FLAG;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr)) < 0) {
         perror("setsockopt SO_REUSEADDR failed");
         close(comm->sockfd);
         free(comm);
         return NULL;
     }
-    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_BROADCAST, &BROADCAST_FLAG, sizeof(BROADCAST_FLAG)) < 0) {
+
+    int broadcast = BROADCAST_FLAG;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
         perror("setsockopt SO_BROADCAST failed");
         close(comm->sockfd);
         free(comm);
@@ -59,6 +62,14 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
+    int priority = SOCKET_PRIORITY;
+    if(setsockopt(comm->sockfd, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority)) < 0){
+        perror("setsockopt SO_PRIORITY failed");
+        close(comm->sockfd);
+        free(comm);
+        return NULL;
+    }
+
     //Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
@@ -70,6 +81,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     comm->destination_addr.sin_family = AF_INET;
     comm->destination_addr.sin_port = htons(destination_port);
     comm->destination_addr.sin_addr.s_addr = inet_addr(destination_addr);
+    
     // Bind socket for receiving
     if (bind(comm->sockfd, (struct sockaddr*)&comm->listener_addr, sizeof(comm->listener_addr)) < 0) {
         perror("Binding socket failed");
@@ -78,7 +90,14 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    printf("[+] Initialized communicator (ID: %s, listener %s:%d, destination %s:%d)\n",  comm->instance_id, inet_ntoa(comm->listener_addr.sin_addr),  ntohs(comm->listener_addr.sin_port), inet_ntoa(comm->destination_addr.sin_addr), ntohs(comm->destination_addr.sin_port));
+    printf("[+] Initialized communicator (ID: %s | Listening on %d | Destination %d)\n",  comm->instance_id, ntohs(comm->listener_addr.sin_port), ntohs(comm->destination_addr.sin_port));
+    printf("[+] Socket Options :\n");
+    printf("\t[~] Non-blocking mode enabled\n");
+    printf("\t[~] SO_REUSEADDR: %d\n", reuseaddr);
+    printf("\t[~] SO_BROADCAST: %d\n", broadcast);
+    printf("\t[~] SO_RCVBUF: %d bytes\n", recieve_buff);
+    printf("\t[~] SO_SNDBUF: %d bytes\n", send_buff);
+    printf("\t[~] SO_PRIORITY: %d\n", priority);
 
     return comm;
 }
