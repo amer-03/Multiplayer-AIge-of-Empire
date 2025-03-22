@@ -16,9 +16,11 @@
 #define FALSE 0
 #define ID_SIZE 10
 #define SEPARATOR ':'
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 1472
+#define RCVBUF_SIZE 10485760
+#define SNDBUF_SIZE 10485760
 #define FLAGS 0
-#define SLEEP_TIME 10000
+#define SLEEP_TIME 1
 
 #define PYTHON_PORT 50000
 #define C_PORT1 50001

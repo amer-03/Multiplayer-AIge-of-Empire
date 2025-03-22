@@ -43,6 +43,29 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
+    int recieve_buff = RCVBUF_SIZE;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
+        perror("setsockopt SO_RCVBUF failed");
+        close(comm->sockfd);
+        free(comm);
+        return NULL;
+    }
+
+    int send_buff = SNDBUF_SIZE;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_SNDBUF, &send_buff, sizeof(send_buff)) < 0) {
+        perror("setsockopt SO_SNDBUF failed");
+        close(comm->sockfd);
+        free(comm);
+        return NULL;
+    }
+
+    int no_delay = 1;
+    setsockopt(comm->sockfd, IPPROTO_UDP, UDP_CORK, &no_delay, sizeof(no_delay));
+
+    // Increase UDP buffer size dynamically based on network conditions
+    int buffer_autotune = 1;
+    setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUFFORCE, &buffer_autotune, sizeof(buffer_autotune));
+    
     //Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
@@ -90,7 +113,7 @@ int send_packet(Communicator* comm, const char* query) {
         }
         return -1;
     }
-    printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+    //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
     return result;
 }
 
@@ -143,7 +166,7 @@ char* receive_packet(Communicator* comm) {
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
-    log_message(comm->recv_buffer, &sender_addr, packet_id);
+    //log_message(comm->recv_buffer, &sender_addr, packet_id);
     return comm->recv_buffer;
 }
 

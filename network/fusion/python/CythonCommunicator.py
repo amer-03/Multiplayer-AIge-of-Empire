@@ -20,19 +20,19 @@ class CythonCommunicator:
 
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 
-    def send_message(self, message):
+    def send_packet(self, message):
         """Send a message to the configured address."""
         try:
             if isinstance(message, str):
                 message = message.encode('utf-8')
             self.sock.sendto(message, self.c_addr)
-            print(f"[+] Sent: {message.decode() if isinstance(message, bytes) else message}")
+            #print(f"[+] Sent: {message.decode() if isinstance(message, bytes) else message}")
             return True
         except Exception as e:
             print(f"[-] Send failed: {str(e)}")
             return False
 
-    def receive_message(self):
+    def receive_packet(self):
         """Receive a message (non-blocking)."""
         try:
             ready = select.select([self.sock], [], [], 0)
@@ -43,7 +43,7 @@ class CythonCommunicator:
         except Exception as e:
             if not isinstance(e, BlockingIOError):
                 print(f"[-] Receive failed: {str(e)}")
-        return None, None
+        return None
 
     def cleanup(self):
         if hasattr(self, 'sock'):
