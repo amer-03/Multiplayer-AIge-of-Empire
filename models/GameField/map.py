@@ -5,7 +5,7 @@ import random
 import math
 from AITools.player import *
 from AITools.clustergenerator import *
-
+from collections import deque
 class Map:
 
     def __init__(self,_nb_CellX , _nb_CellY):
@@ -30,6 +30,7 @@ class Map:
         # for the minimap
         self.minimap = MiniMap(PVector2(1000,300), _nb_CellX, _nb_CellY)
 
+        self.q = deque()
         self.id_generator = IdGenerator()
         self.state = "normal"
 
@@ -613,7 +614,13 @@ class Map:
     def update_all_players(self, dt):
         for player in self.players_dict.values():
             player.update(dt)
-            player.think(dt,2)
+
+
+        self.get_player_by_team(1).think(dt,self.q)
+        while (len(self.q) > 0):
+            print(self.q.popleft())
+
+
         for team in list(self.players_dict.keys()):
 
             player = self.players_dict.get(team, None)
@@ -687,7 +694,7 @@ def spiral_distribution(Y, X, reg_div, player_num):
     Cy, Cx = Y/2, X/2
 
     angle_num = 0
-    angle_step = math.ceil(1*player_num)
+    angle_step = math.ceil(0.72*player_num)
 
     for lvl in range(spiral_lvl):
         rY, rX = lvl*Y_step, lvl*X_step

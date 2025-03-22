@@ -26,7 +26,7 @@ FPS = 60
 MEDIEVALSHARP = "MedievalSharp-Regular.ttf"
 
 
-GOLD_COLOR = (255, 215, 0) 
+GOLD_COLOR = (255, 215, 0)
 BROWN_TREE_COLOR = (139, 69, 19)
 MINIMAP_COLOR = (53, 94, 59)
 
@@ -85,8 +85,8 @@ MUSIC = {
     "end":"Sounds/Menu.mp3"
 }
 
-LEFT_CLICK = 1 
-RIGHT_CLICK = 3 
+LEFT_CLICK = 1
+RIGHT_CLICK = 3
 #state
 
 START = 0
@@ -155,7 +155,7 @@ UNIT_TASK = 4
 
 MAX_UNIT_POPULATION = 200
 
-GROUP_IDLE = 0 
+GROUP_IDLE = 0
 GROUP_WALKING = 1
 GROUP_ATTACKING = 2
 
@@ -165,11 +165,13 @@ TRAIN_BUSY = 1
 TRAIN_NOT_ACTIVE = 2
 TRAIN_NOT_FOUND_UNIT = 3
 TRAIN_POPULATION_MAX_LIMIT = 4
+TRAIN_SUCCESS = 5
 
 BUILDING_INPROGRESS= 0
 BUILDING_ACTIVE = 1
 BUILDING_DYING = 2
 BUILDING_POPULATION_MAX_LIMIT = 3
+BUILDING_SUCCESS = 4
 
 TREE_CAPACITY = 100
 GOLD_CAPACITY = 800
@@ -178,8 +180,8 @@ FARM_CAPACITY = 300
 CAMP_MAX_HP = 200
 FARM_MAX_HP = 100
 HOUSE_MAX_HP = 100
-KEEP_MAX_HP = 800 
-STABLE_MAX_HP = 500 
+KEEP_MAX_HP = 800
+STABLE_MAX_HP = 500
 TOWNCENTER_MAX_HP= 1000
 ARCHERYRANGE_MAX_HP = 500
 BARRACKS_MAX_HP = 500
@@ -192,7 +194,7 @@ VILLAGER_MAX_HP = 25
 BARBOX_WIDTH = 10
 BARBOX_HEIGHT = 5
 from pvector2 import *
-from ImageProcessingDisplay.imagemethods import * 
+from ImageProcessingDisplay.imagemethods import *
 
 
 UNIT_ANGLE_MAPPING = {
@@ -244,7 +246,7 @@ def MAP_ANGLE_INDEX(angle, angle_map):
             animation_index = angle_map.get(angle_key)
 
     return animation_index
- 
+
 
 pygame.init()
 
@@ -252,7 +254,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.HWSURFACE
 pygame.display.set_caption("AOE2")
 
 
-"""  DONT DELETE THIS SECTION !!!, WE MAY USE IT LATER 
+"""  DONT DELETE THIS SECTION !!!, WE MAY USE IT LATER
 GRASS= load_sprite("Sprites/grass.webp")
 g =resize_sprite(GRASS, camera.img_scale*50)
 g_w, g_h = g.get_size()
@@ -327,7 +329,7 @@ SPRITES = {
     'c': CAVARLYARCHER_ARRAY_3D,
     'm':SPEARMAN_ARRAY_3D,
     'x':AXEMAN_ARRAY_3D,
-    
+
     'pa': ARROW_ARRAY_2D,
     'fpa': FIREARROW_ARRAY_2D,
     'ps': SPEAR_ARRAY_2D,
@@ -390,16 +392,16 @@ def META_SPRITES_CACHE_HANDLE(zoom_level, list_keys, camera): # returns image to
 
         if (tmp_dict != None):
             current_dict = tmp_dict
-            continue 
-        
+            continue
+
         if (key < keys_len - 1):
             current_dict[list_keys[key]] = {}
             current_dict = current_dict.get(list_keys[key], None)
         else:
             current_dict[list_keys[key]] = resize(parallele_dict, zoom_level * camera.img_scale)
             current_dict = current_dict.get(list_keys[key], None)
-        
-    return current_dict 
+
+    return current_dict
 
 def convert_seconds(gseconds):
     seconds = math.ceil(gseconds)
@@ -413,7 +415,7 @@ def convert_seconds(gseconds):
         result.append(f"{hours}h")
     if minutes > 0:
         result.append(f"{minutes}min")
-    if secs > 0 or not result:  
+    if secs > 0 or not result:
         result.append(f"{secs}s")
 
     return " ".join(result)

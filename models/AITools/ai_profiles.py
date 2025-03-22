@@ -5,7 +5,7 @@ from GLOBAL_VAR import *
 import time
 from random import *
 
-#from network.QueryProcessing.networkqueryformatter import *
+from network.QueryProcessing.networkqueryformatter import *
 from collections import deque # the queue of the user that contains the action to send
 
 
@@ -25,7 +25,12 @@ class AIProfile:
     def compare_ratios(self, actual_ratios, target_ratios, context,query_snd_queue, keys_to_include=None): #==============================================
         if len(context['player'].get_entities_by_class(['F']))<1:
             if context['player'].get_current_resources()["wood"]>=61:
-                result = context['player'].build_entity(context['player'].get_entities_by_class('v',is_free=True), 'F')
+                villager_id_list = context['player'].get_entities_by_class('v',is_free=True)
+
+                result = context['player'].build_entity(villager_id_list, 'F')
+                if result != 0:
+                    query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, 'F', None))
+
                 return
             else :
                 v_ids = context['player'].get_entities_by_class(['v'],is_free=True)
@@ -40,11 +45,16 @@ class AIProfile:
                             if c_pointer<len(c_ids)-1:
                                 c_pointer += 1
                         v.collect_entity(c_ids[c_pointer])
+                        query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
+
                         counter += 1
                     else:
                         if context['drop_off_id'] is None:
                             return
-                        v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
+
+                        drop_target_id = context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True)
+                        v.drop_to_entity(drop_target_id)
+                        query_snd_queue.append(NetworkQueryFormatter.format_drop_to_entity(v.id, drop_target_id))
                         #v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
 
             return
@@ -62,10 +72,17 @@ class AIProfile:
             villagers = context['player'].get_entities_by_class(['v'], is_free=True)
             if not villagers:
                 return
-            result = context['player'].build_entity(context['player'].get_entities_by_class(['v'],is_free=True), building_repr[0])
+
+            villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
+
+            result = context['player'].build_entity(villager_id_list, building_repr[0])
+
             new_ids = set(context['player'].get_entities_by_class(['A','B','C','K','T', 'F', 'S']))
+
             new_building_ids = new_ids - existing_ids
             if result != 0:
+                query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, building_repr[0], None))
+
                 if not new_building_ids:
                     continue
                 new_building_id = new_building_ids.pop()
@@ -88,12 +105,19 @@ class AIProfile:
                                 counter = 0
                                 if c_pointer<len(c_ids)-1:
                                     c_pointer += 1
+
                             v.collect_entity(c_ids[c_pointer])
+                            query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
+
                             counter += 1
                         if v.is_full():
                             if context['drop_off_id'] is None:
                                 return "Gathered resources"
-                            v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
+
+                            drop_target_id = context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True)
+                            v.drop_to_entity(drop_target_id)
+                            query_snd_queue.append(NetworkQueryFormatter.format_drop_to_entity(v.id, drop_target_id))
+
                     return "Gathered resources"
 
     STOP_CONDITIONS = {TRAIN_NOT_AFFORDABLE, TRAIN_NOT_FOUND_UNIT, TRAIN_NOT_ACTIVE}
@@ -170,6 +194,7 @@ class AIProfile:
         # Call the appropriate strategy
         if self.strategy == "aggressive":
             return self._aggressive_strategy(actions, context, query_snd_queue)
+        elif self.strategy == "defensive":
             return self._defensive_strategy(actions, context, query_snd_queue)
         elif self.strategy == "balanced":
             return self._balanced_strategy(actions, context, query_snd_queue)
@@ -194,8 +219,11 @@ class AIProfile:
                     villager_free=[context['player'].linked_map.get_entity_by_id(v_id) for v_id in context['player'].get_entities_by_class(['v'],is_free=True)]
                     unit_list = context['units']['military_free']+villager_free[:len(villager_free)//2]
                     context['enemy_id'] = self.closest_enemy_building(context)
+
                     for unit in unit_list:
                         unit.attack_entity(context['enemy_id'])
+                        query_snd_queue.append(NetworkQueryFormatter.format_attack_entity(unit.id, context['enemy_id']))
+
                     return "Attacking in progress"
 
                 elif action == "Train military units!":
@@ -205,7 +233,12 @@ class AIProfile:
                         keys_to_consider = ['B','S','A']
                         self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue, keys_to_consider)
                     for building in training_buildings:
-                        (context['player'].linked_map.get_entity_by_id(building)).train_unit(context['player'], self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
+                        b = context['player'].linked_map.get_entity_by_id(building)
+                        rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
+
+                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
+                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
+
                     # resources_to_collect=("wood",'W')
                     # for temp_resources in [("gold",'G'),("food",'F')]:
                     #     if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:
@@ -261,7 +294,12 @@ class AIProfile:
                         keys_to_consider = ['S','A','T']
                         self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context,query_snd_queue,keys_to_consider)
                     for building in training_buildings:
-                        (context['player'].linked_map.get_entity_by_id(building)).train_unit(player, self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
+                        b = context['player'].linked_map.get_entity_by_id(building)
+                        rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
+
+                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
+                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
+
                     resources_to_collect=("wood",'W')
                     for temp_resources in [("gold",'G'),("food",'F')]:
                         if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:
@@ -289,6 +327,8 @@ class AIProfile:
                     context['enemy_id'] = self.closest_enemy_building(context)
                     for unit in unit_list:
                         unit.attack_entity(context['enemy_id'])
+                        query_snd_queue.append(NetworkQueryFormatter.format_attack_entity(unit.id, context['enemy_id']))
+
                     return "Attacking in progress"
 
                 elif action == "Building structure!":
@@ -332,6 +372,7 @@ class AIProfile:
                                 if c_pointer<len(c_ids)-1:
                                     c_pointer += 1
                             v.collect_entity(c_ids[c_pointer])
+
                             counter += 1
                         else:
                             if context['drop_off_id'] is None:
@@ -357,7 +398,12 @@ class AIProfile:
                         keys_to_consider = ['T','B','S']
                         self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue, keys_to_consider)
                     for building in training_buildings:
-                        (context['player'].linked_map.get_entity_by_id(building)).train_unit(player,self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
+                        b = context['player'].linked_map.get_entity_by_id(building)
+                        rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
+
+                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
+                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
+
                     resources_to_collect=("wood",'W')
                     for temp_resources in [("gold",'G'),("food",'F')]:
                         if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:

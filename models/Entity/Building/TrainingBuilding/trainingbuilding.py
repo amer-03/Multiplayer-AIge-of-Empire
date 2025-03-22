@@ -63,6 +63,8 @@ class TrainingBuilding(Building):
                             self.unit_being_trained = unit
 
                             self.time_left = self.unit_being_trained.training_time * ONE_SEC
+
+                            return TRAIN_SUCCESS
                     else:
 
                         #self.linked_map.id_generator.free_ticket(unit.id)

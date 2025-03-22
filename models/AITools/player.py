@@ -7,7 +7,7 @@ from random import randint,seed
 
 import time
 
-#from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
+from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
 from collections import deque # the queue of the user that contains the action to send
 
 
@@ -94,7 +94,11 @@ def check_housing(context):
 def train_villager(context, query_snd_queue): #==============================================
     for towncenter_id in context['player'].get_entities_by_class(['T']):
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
-        towncenter.train_unit(context['player'],'v')
+
+        if towncenter.train_unit(context['player'],'v') == TRAIN_SUCCESS:
+            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(towncenter.id, context['player'].team, 'v'))
+
+
         if context['player'].get_current_resources()['food']<50:
             gather_resources(context, query_snd_queue)
     return "Training villagers!"
@@ -115,7 +119,10 @@ def gather_resources(context, query_snd_queue): #===============================
                 counter = 0
                 if c_pointer<len(c_ids)-1:
                     c_pointer += 1
+
             v.collect_entity(c_ids[c_pointer])
+            query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
+
             counter += 1
         else:
             drop_resources(context, query_snd_queue)
@@ -131,7 +138,10 @@ def drop_resources(context, query_snd_queue): #=================================
     for unit in [context['player'].linked_map.get_entity_by_id(v_id) for v_id in context['player'].get_entities_by_class(['v'],is_free=True)]:
 
         if unit.is_full():
-            unit.drop_to_entity(context['player'].entity_closest_to(["T","C"], unit.cell_Y, unit.cell_X, is_dead = True))
+            drop_target_id = context['player'].entity_closest_to(["T","C"], unit.cell_Y, unit.cell_X, is_dead = True)
+            unit.drop_to_entity(drop_target_id)
+            query_snd_queue.append(NetworkQueryFormatter.format_drop_to_entity(unit.id, drop_target_id))
+
     return "Dropping off resources!"
 
 
@@ -139,7 +149,10 @@ def build_structure(context, query_snd_queue): #================================
     return "Building structure!"
 
 def housing_crisis(context, query_snd_queue): #==============================================
-    context['player'].build_entity(context['player'].get_entities_by_class(['v'],is_free=True), 'H')
+    villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
+
+    if context['player'].build_entity(villager_id_list, 'H') == BUILDING_SUCCESS:
+        query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, 'H', None))
     return "Building House!"
 
 # ---- Arbre de décision ----
@@ -288,7 +301,8 @@ class Player:
 
         self.decision_tree= tree
         strat = choose_strategy(self)
-        self.ai_profile = AIProfile(strategy = strat[0], aggressiveness= strat[1], defense = strat[2])
+        print(f"[+] Player n : {team}, strat : {'aggressive'}")
+        self.ai_profile = AIProfile(strategy = "aggressive", aggressiveness= strat[1], defense = strat[2])
         self.game_handler = GameEventHandler(self.linked_map,self,self.ai_profile)
 
         self.refl_acc = 0
@@ -403,7 +417,7 @@ class Player:
                         if villager != None:
                             villager.build_entity(Instance.id)
 
-                    return 1
+                    return BUILDING_SUCCESS
                 """
                 else:
                     self.linked_map.id_generator.free_ticket(Instance.id)

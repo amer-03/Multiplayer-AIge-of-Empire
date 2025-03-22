@@ -2,7 +2,7 @@
 # from ai_profiles import AIProfile
 from Entity.entity import Entity
 from GLOBAL_VAR import *
-
+from collections import deque
 
 class GameEventHandler:
     def __init__(self, map, players, ai_profiles):
