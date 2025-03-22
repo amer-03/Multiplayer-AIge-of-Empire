@@ -36,7 +36,7 @@ int main() {
         if (external_query != NULL) {
             external_total_recieve++;
             printf("[Rvd PACKET]: %s | [RvdExtPackets]: %d",external_query, external_total_recieve);
-            if(atoi(internal_query) - packetlost != external_total_recieve){
+            if(atoi(external_query) - packetlost != external_total_recieve){
                 packetlost++;             
             }
             printf(" | Packet Loss : %d \n", packetlost); 
