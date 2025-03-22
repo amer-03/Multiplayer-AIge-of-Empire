@@ -29,7 +29,7 @@ def main():
             current_time = time.time()
             
             # Send packets as fast as possible
-            message = f"hi {counter}"
+            message = f"{counter}"
             comm.send_packet(message)
             sent_packets += 1
             counter += 1
