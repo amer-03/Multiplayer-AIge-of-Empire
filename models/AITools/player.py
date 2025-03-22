@@ -1,10 +1,14 @@
 from GLOBAL_VAR import *
 from GLOBAL_IMPORT import *
 from .game_event_handler import *
-from .ai_profiles import*
+from .ai_profiles import *
 from tkinter import messagebox, Button, Scale, Tk, Label, Frame, Grid, HORIZONTAL, N, W, E, S
 from random import randint,seed
+
 import time
+
+from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
+
 
 
 CLASS_MAPPING = {
@@ -251,6 +255,14 @@ def choose_strategy(Player):
             result.append(agressive)
             result.append(defense)
         return result
+
+
+
+
+
+
+
+
 
 
 
@@ -635,11 +647,14 @@ class Player:
         self.refl_acc +=dt
         if self.refl_acc>ONE_SEC/3:
             self.player_turn(dt)
-
+            self.refl_acc=0
 
     def player_turn(self,dt):
         decision = self.game_handler.process_ai_decisions(self.decision_tree)
-        self.refl_acc=0
+
+
+
+
 
         # # decision = self.ai_profile.decide_action(self.decision_tree, context)
         # return decision

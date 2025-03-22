@@ -7,7 +7,9 @@ class User:
 
     def __init__(self):
         self.communicator = None
-        self.query_queue = deque()
+        self.query_rcv_queue = deque()
+        self.query_snd_queue = deque()
+
         # run the c process here
 
 
@@ -15,16 +17,24 @@ class User:
         self.team = 1
         self.connected = False
 
-    def add_query(self, query):
+    def add_query(self, query, flag):
 
-        self.query_queue.append(query)
+        if flag == "r":
+            self.query_rcv_queue.append(query)
+        elif flag == "s":
+            self.query_snd_queue.append(query)
 
 
-    def get_query(self):
+    def get_query(self, flag):
 
-        if len(self.query_queue) > 0:
+        if flag == "r":
+            if len(self.query_rcv_queue) > 0:
 
-            return self.query_queue.popleft()
+                return self.query_rcv_queue.popleft()
+        elif flag == "s":
+            if len(self.query_snd_queue) > 0:
+
+                return self.query_snd_queue.popleft()
 
         return None
 
