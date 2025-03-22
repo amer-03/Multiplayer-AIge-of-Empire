@@ -1,6 +1,6 @@
-from query_executor import *
-from network.QueryProcessing.networkqueryparser import *
-
+from Game.query_executor import *
+#from network.QueryProcessing.networkqueryparser import *
+# import comm here
 from collections import deque
 
 class User:
@@ -31,6 +31,7 @@ class User:
             if len(self.query_rcv_queue) > 0:
 
                 return self.query_rcv_queue.popleft()
+
         elif flag == "s":
             if len(self.query_snd_queue) > 0:
 
@@ -38,13 +39,20 @@ class User:
 
         return None
 
-    def handle_all_queries(self, game_map):
+    def handle_all_rcv_queries(self, game_map):
 
         current_query = None
 
-        while ((current_query := self.get_query()) != None):
+        while ((current_query := self.get_query("r")) != None):
             QueryExecutor.handle_query(game_map, NetworkQueryParser.parse_query(current_query))
 
+    def handle_all_snd_queries(self):
+
+        current_query = None
+
+        while ((current_query := self.get_query("f")) != None):
+            #self.communicator.send_packet(current_query)
+            pass
 
     def update(self, dt, game_map):
         pass
@@ -52,9 +60,8 @@ class User:
         # if packet_rcvd != None:
             # self.add_query(packet_rcvd)
 
-        # self.handle_all_queries(game_map)
+        # self.handle_all_rcv_queries(game_map)
 
-        # packet_snd = game_map.get_player_by_team(self.team).think(dt)
+        # game_map.get_player_by_team(self.team).think(dt, self.query_snd_queue)
 
-        # if queryf != "":
-            # self.communicator.send_packet(packet_snd)
+        # self.handle_all_snd_queries()

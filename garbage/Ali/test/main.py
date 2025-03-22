@@ -34,9 +34,13 @@ class User:
     def update(self):
         pass
 
-u = User()
-qn = 15
-st = f"{1}:{[2,3,5]}:{''}:{None}"
-print(st)
+def dd(q):
+    print(q.popleft())
 
-print(3 == ast.literal_eval(f"{int(3)}"))
+u = User()
+u.add_query("hello")
+u.add_query("shila")
+
+dd(u.query_queue)
+
+print(u.get_query())

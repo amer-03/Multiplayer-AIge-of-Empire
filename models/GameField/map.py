@@ -613,7 +613,7 @@ class Map:
     def update_all_players(self, dt):
         for player in self.players_dict.values():
             player.update(dt)
-
+            player.think(dt,2)
         for team in list(self.players_dict.keys()):
 
             player = self.players_dict.get(team, None)

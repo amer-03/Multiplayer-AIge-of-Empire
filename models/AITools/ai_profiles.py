@@ -5,7 +5,8 @@ from GLOBAL_VAR import *
 import time
 from random import *
 
-from network.QueryProcessing.networkqueryformatter import *
+#from network.QueryProcessing.networkqueryformatter import *
+from collections import deque # the queue of the user that contains the action to send
 
 
 class AIProfile:
@@ -21,7 +22,7 @@ class AIProfile:
         self.aggressiveness = aggressiveness
         self.defense = defense
 
-    def compare_ratios(self, actual_ratios, target_ratios, context, keys_to_include=None):
+    def compare_ratios(self, actual_ratios, target_ratios, context,query_snd_queue, keys_to_include=None): #==============================================
         if len(context['player'].get_entities_by_class(['F']))<1:
             if context['player'].get_current_resources()["wood"]>=61:
                 result = context['player'].build_entity(context['player'].get_entities_by_class('v',is_free=True), 'F')
@@ -97,6 +98,10 @@ class AIProfile:
 
     STOP_CONDITIONS = {TRAIN_NOT_AFFORDABLE, TRAIN_NOT_FOUND_UNIT, TRAIN_NOT_ACTIVE}
 
+
+
+
+
     def choose_units(self, building):
         if isinstance(building, Barracks):
             units_list = ['s','x']
@@ -114,6 +119,10 @@ class AIProfile:
             n = randint(0, 1)
             return units_list[n]
 
+
+
+
+
     def closest_player(self,context):
         list_player = context['player'].linked_map.players_dict.values()
         distance = {}
@@ -124,6 +133,12 @@ class AIProfile:
                 distance[player] = (dx ** 2 + dy ** 2) ** 0.5
         closest = min(distance.items(), key=lambda x: x[1])
         return closest[0]
+
+
+
+
+
+
 
     def closest_enemy_building(self,context):
         player = self.closest_player(context)
@@ -141,7 +156,7 @@ class AIProfile:
 
 
 
-    def decide_action(self,tree, context):
+    def decide_action(self,tree, context, query_snd_queue): #==============================================
         """
         Decide the action to perform based on strategy and decision tree.
         :param context: Dictionary containing the current game state.
@@ -150,17 +165,16 @@ class AIProfile:
         # Get the actions from the decision tree
         if context['player'].is_busy:
             return
-        actions = tree.decide(context)
+        actions = tree.decide(context, query_snd_queue)
 
         # Call the appropriate strategy
         if self.strategy == "aggressive":
-            return self._aggressive_strategy(actions, context)
-        elif self.strategy == "defensive":
-            return self._defensive_strategy(actions, context)
+            return self._aggressive_strategy(actions, context, query_snd_queue)
+            return self._defensive_strategy(actions, context, query_snd_queue)
         elif self.strategy == "balanced":
-            return self._balanced_strategy(actions, context)
+            return self._balanced_strategy(actions, context, query_snd_queue)
 
-    def _aggressive_strategy(self, actions, context):
+    def _aggressive_strategy(self, actions, context, query_snd_queue): #==============================================
         """
         Implement the aggressive strategy by prioritizing attacks and military training.
         """
@@ -189,7 +203,7 @@ class AIProfile:
                     training_buildings = context['buildings']['training']
                     if not training_buildings:
                         keys_to_consider = ['B','S','A']
-                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context,keys_to_consider)
+                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue, keys_to_consider)
                     for building in training_buildings:
                         (context['player'].linked_map.get_entity_by_id(building)).train_unit(context['player'], self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
                     # resources_to_collect=("wood",'W')
@@ -211,11 +225,11 @@ class AIProfile:
                     #         counter += 1
                     #     if v.is_full():
                     #         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Trained military units"
 
                 elif action == "Building structure!":
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Structure are built!"
 
             # Default to gathering resources if no attack actions are possible
@@ -223,7 +237,7 @@ class AIProfile:
         finally:
             context['player'].is_busy = False
 
-    def _defensive_strategy(self, actions, context):
+    def _defensive_strategy(self, actions, context, query_snd_queue): #==============================================
         """
         Implement the defensive strategy by focusing on repairs and defenses.
         """
@@ -245,7 +259,7 @@ class AIProfile:
                     training_buildings = context['buildings']['training']
                     if not training_buildings:
                         keys_to_consider = ['S','A','T']
-                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context,keys_to_consider)
+                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context,query_snd_queue,keys_to_consider)
                     for building in training_buildings:
                         (context['player'].linked_map.get_entity_by_id(building)).train_unit(player, self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
                     resources_to_collect=("wood",'W')
@@ -267,7 +281,7 @@ class AIProfile:
                     #         counter += 1
                     #     if v.is_full():
                     #         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Trained military units"
 
                 elif action == "Attacking the enemy!":
@@ -278,13 +292,13 @@ class AIProfile:
                     return "Attacking in progress"
 
                 elif action == "Building structure!":
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Structure are built!"
 
         finally:
             context['player'].is_busy = False
 
-    def _balanced_strategy(self, actions, context):
+    def _balanced_strategy(self, actions, context, query_snd_queue): #==============================================
         """
         Implement the balanced strategy by combining gathering, training, and attacks.
         """
@@ -341,7 +355,7 @@ class AIProfile:
                     training_buildings = context['buildings']['training']
                     if not training_buildings:
                         keys_to_consider = ['T','B','S']
-                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, keys_to_consider)
+                        self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue, keys_to_consider)
                     for building in training_buildings:
                         (context['player'].linked_map.get_entity_by_id(building)).train_unit(player,self.choose_units(context['player'].linked_map.get_entity_by_id(building)))
                     resources_to_collect=("wood",'W')
@@ -364,7 +378,7 @@ class AIProfile:
                     #         counter += 1
                     #     if v.is_full():
                     #         v.drop_to_entity(context['player'].entity_closest_to(["T","C"], v.cell_Y, v.cell_X, is_dead = True))
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Trained military units"
 
                 elif action == "Attacking the enemy!":
@@ -376,7 +390,7 @@ class AIProfile:
                     return "Attacking in progress"
 
                 elif action == "Building structure!":
-                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context)
+                    self.compare_ratios(context['buildings']['ratio'], target_ratios_building, context, query_snd_queue)
                     return "Structure are built!"
         finally:
             context['player'].is_busy = False

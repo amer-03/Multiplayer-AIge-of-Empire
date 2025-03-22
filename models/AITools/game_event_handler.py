@@ -10,10 +10,10 @@ class GameEventHandler:
         self.players = players
         self.ai_profiles = ai_profiles
 
-    def process_ai_decisions(self, tree):
+    def process_ai_decisions(self, tree, query_snd_queue): #==============================================
         all_action = []
         context = self.get_context_for_player()
-        actions = self.ai_profiles.decide_action(tree, context)
+        actions = self.ai_profiles.decide_action(tree, context, query_snd_queue)
         all_action.append(actions)
 
     def get_context_for_player(self):
@@ -47,7 +47,3 @@ class GameEventHandler:
             'housing_crisis':(self.players.current_population >= self.players.get_current_population_capacity())
         }
         return context
-
-
-
-

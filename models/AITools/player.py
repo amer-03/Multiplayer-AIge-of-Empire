@@ -7,7 +7,8 @@ from random import randint,seed
 
 import time
 
-from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
+#from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
+from collections import deque # the queue of the user that contains the action to send
 
 
 
@@ -44,21 +45,21 @@ class DecisionNode:
         self.no_action = no_action
         self.priority = priority
 
-    def decide(self, context):
+    def decide(self, context, query_snd_queue):
         actions = []
         if self.question(context):
             if isinstance(self.yes_action, DecisionNode):
-                actions.extend(self.yes_action.decide(context))
+                actions.extend(self.yes_action.decide(context, query_snd_queue))
             else:
                 if callable(self.yes_action):
-                    result = self.yes_action(context)
+                    result = self.yes_action(context,query_snd_queue)
                     actions.append((result, self.priority))
         else:
             if isinstance(self.no_action, DecisionNode):
-                actions.extend(self.no_action.decide(context))
+                actions.extend(self.no_action.decide(context, query_snd_queue))
             else:
                 if callable(self.no_action):
-                    result = self.no_action(context)
+                    result = self.no_action(context, query_snd_queue)
                     actions.append((result, self.priority))
 
         actions.sort(key=lambda x: x[1], reverse=True)
@@ -90,15 +91,15 @@ def check_housing(context):
     return (context['player'].current_population >= context['player'].get_current_population_capacity())
 
 # ---- Actions ----
-def train_villager(context):
+def train_villager(context, query_snd_queue): #==============================================
     for towncenter_id in context['player'].get_entities_by_class(['T']):
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
         towncenter.train_unit(context['player'],'v')
         if context['player'].get_current_resources()['food']<50:
-            gather_resources(context)
+            gather_resources(context, query_snd_queue)
     return "Training villagers!"
 
-def gather_resources(context):
+def gather_resources(context, query_snd_queue): #==============================================
     resources_to_collect=("wood",'W')
     for temp_resources in [("gold",'G'),("food",'F')]:
         if context['resources'][temp_resources[0]]<context['resources'][resources_to_collect[0]]:
@@ -117,16 +118,16 @@ def gather_resources(context):
             v.collect_entity(c_ids[c_pointer])
             counter += 1
         else:
-            drop_resources(context)
+            drop_resources(context, query_snd_queue)
     return "Gathering resources!"
 
-def train_military(context):
+def train_military(context, query_snd_queue): #==============================================
     return "Train military units!"
 
-def attack(context):
+def attack(context, query_snd_queue): #==============================================
     return "Attacking the enemy!"
 
-def drop_resources(context):
+def drop_resources(context, query_snd_queue): #==============================================
     for unit in [context['player'].linked_map.get_entity_by_id(v_id) for v_id in context['player'].get_entities_by_class(['v'],is_free=True)]:
 
         if unit.is_full():
@@ -134,10 +135,10 @@ def drop_resources(context):
     return "Dropping off resources!"
 
 
-def build_structure(context):
+def build_structure(context, query_snd_queue): #==============================================
     return "Building structure!"
 
-def housing_crisis(context):
+def housing_crisis(context, query_snd_queue): #==============================================
     context['player'].build_entity(context['player'].get_entities_by_class(['v'],is_free=True), 'H')
     return "Building House!"
 
@@ -643,14 +644,14 @@ class Player:
         self.update_population(dt)
 
 
-    def think(self, dt):
+    def think(self, dt, query_snd_queue):#==============================================
         self.refl_acc +=dt
         if self.refl_acc>ONE_SEC/3:
-            self.player_turn(dt)
+            self.player_turn(dt, query_snd_queue)
             self.refl_acc=0
 
-    def player_turn(self,dt):
-        decision = self.game_handler.process_ai_decisions(self.decision_tree)
+    def player_turn(self,dt, query_snd_queue):#==============================================
+        decision = self.game_handler.process_ai_decisions(self.decision_tree, query_snd_queue) #==============================================
 
 
 
