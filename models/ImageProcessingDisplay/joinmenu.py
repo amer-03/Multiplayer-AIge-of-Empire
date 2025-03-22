@@ -5,9 +5,9 @@ from ImageProcessingDisplay.imagemethods import adjust_sprite
 class JoinMenu:
     def __init__(self, screen):
         self.screen = screen
-        self.font = pygame.font.Font(MEDIEVALSHARP, 28)
+        self.font = pygame.font.Font(MEDIEVALSHARP, 22)
 
-        rect_width, rect_height = 500, 300
+        rect_width, rect_height = 600, 350  
         self.players_rect = pygame.Rect(
             (screen.get_width() - rect_width) // 2,
             (screen.get_height() - rect_height) // 2,
@@ -41,30 +41,42 @@ class JoinMenu:
         self.screen.blit(adjust_sprite(START_IMG, screen_width, screen_height), (0, 0))
         pygame.draw.rect(self.screen, (0, 0, 0), self.players_rect)
 
-        header_text = self.font.render("IP                   Port", True, (255, 255, 255))
-        self.screen.blit(header_text, (self.players_rect.x + 20, self.players_rect.y + 10))
+        # Position de départ pour les colonnes
+        ip_x = self.players_rect.x + 10
+        port_x = ip_x + 140
+        taille_x = port_x + 100
+        mode_x = taille_x + 120
+        joueurs_x = mode_x + 100
+
+        # Affichage des titres centrés sur leur colonne
+        header_y = self.players_rect.y + 10
+        self.screen.blit(self.font.render("IP", True, (255, 255, 255)), (ip_x, header_y))
+        self.screen.blit(self.font.render("Port", True, (255, 255, 255)), (port_x, header_y))
+        self.screen.blit(self.font.render("Size", True, (255, 255, 255)), (taille_x, header_y))
+        self.screen.blit(self.font.render("Mode", True, (255, 255, 255)), (mode_x, header_y))
+        self.screen.blit(self.font.render("Player", True, (255, 255, 255)), (joueurs_x, header_y))
 
         clip_rect = self.players_rect.copy()
         clip_rect.y += 50
         clip_rect.height -= 50
         self.screen.set_clip(clip_rect)
 
-        for idx, (ip, port) in enumerate(ALL_IP.items()):
+        for idx, (ip, data) in enumerate(ALL_IP.items()):
+            port, taille, mode, joueurs = data
             y_pos = self.players_rect.y + 60 + (idx * self.line_height) - self.scroll_y
-            ip_rect = pygame.Rect(self.players_rect.x + 20, y_pos, 300, self.line_height)
 
-            # Griser si sélectionnée
             color = (100, 100, 100) if ip == self.selected_ip else (255, 255, 255)
 
-            player_text = self.font.render(f"{ip}", True, color)
-            port_text = self.font.render(f"{port}", True, color)
-
-            self.screen.blit(player_text, (self.players_rect.x + 20, y_pos))
-            self.screen.blit(port_text, (self.players_rect.x + 250, y_pos))
+            # Affichage des données centrées sous chaque titre
+            self.screen.blit(self.font.render(ip, True, color), (ip_x, y_pos))
+            self.screen.blit(self.font.render(str(port), True, color), (port_x, y_pos))
+            self.screen.blit(self.font.render(taille, True, color), (taille_x, y_pos))
+            self.screen.blit(self.font.render(mode, True, color), (mode_x, y_pos))
+            self.screen.blit(self.font.render(str(joueurs), True, color), (joueurs_x, y_pos))
 
         self.screen.set_clip(None)
 
-        # Slider
+        # Affichage du slider
         total_lines = len(ALL_IP)
         total_height = total_lines * self.line_height + 60
         if total_height > self.players_rect.height:
@@ -76,11 +88,13 @@ class JoinMenu:
         join_text = self.font.render("Join", True, (255, 255, 255))
         self.screen.blit(join_text, join_text.get_rect(center=self.join_button.center))
 
+        # Bouton retour (flèche)
         pygame.draw.polygon(self.screen, (128, 128, 128), [
             (self.back_button.x + 35, self.back_button.y + 10),
             (self.back_button.x + 15, self.back_button.y + 25),
             (self.back_button.x + 35, self.back_button.y + 40)
         ])
+
 
     def handle_click(self, pos, game_state):
         global SELECTED_IP
@@ -93,7 +107,7 @@ class JoinMenu:
             if self.selected_ip is not None:
                 SELECTED_IP = self.selected_ip
                 print(f"IP envoyée: {self.selected_ip}")
-                return self.selected_ip  # Renvoie directement l'IP sélectionnée
+                return self.selected_ip
             else:
                 print("Aucune IP sélectionnée.")
                 return None
@@ -101,7 +115,6 @@ class JoinMenu:
         if not self.players_rect.collidepoint(pos):
             return None
 
-        # Gestion des clics sur les adresses IP
         for idx, ip in enumerate(ALL_IP.keys()):
             y_pos = self.players_rect.y + 60 + (idx * self.line_height) - self.scroll_y
             ip_rect = pygame.Rect(self.players_rect.x, y_pos, self.players_rect.width, self.line_height)
@@ -112,9 +125,6 @@ class JoinMenu:
                 break
 
         return None
-
-
-
 
     def scroll(self, direction):
         total_height = len(ALL_IP) * self.line_height + 60
