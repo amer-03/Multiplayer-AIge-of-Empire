@@ -15,7 +15,7 @@ class Entity():
         if id:
             self.id = id
         else:
-            self.id = id_gen.give_ticket() + team * 10000
+            self.id = id_gen.give_ticket(team)
         self.sq_size = sq_size
 
 
