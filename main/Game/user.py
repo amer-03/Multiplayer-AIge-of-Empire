@@ -17,7 +17,7 @@ class User:
         # run the c process here
         script_dir = os.path.dirname(os.path.abspath(__file__))
         communicator_path = os.path.join(script_dir, "..", "network", "packettransport", "C", "communicator")
-        process = subprocess.Popen([communicator_path])
+        #process = subprocess.Popen([communicator_path])
         print(f"Started communicator from: {communicator_path}")
 
 
