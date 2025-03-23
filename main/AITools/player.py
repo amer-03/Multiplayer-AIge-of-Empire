@@ -122,8 +122,6 @@ def gather_resources(context, query_snd_queue): #===============================
 
             v.collect_entity(c_ids[c_pointer])
             query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
-            print(f"=>gather_r : {NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer])} ")
-            print(f"=>the villager is {isinstance(v, Villager)}")
 
             counter += 1
         else:
