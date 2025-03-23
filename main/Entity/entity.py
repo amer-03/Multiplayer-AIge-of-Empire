@@ -15,7 +15,7 @@ class Entity():
         if id:
             self.id = id
         else:
-            self.id = id_gen.give_ticket()
+            self.id = id_gen.give_ticket() + team * 10000
         self.sq_size = sq_size
         self.image = None
         self.dict_repr = {
@@ -39,22 +39,22 @@ class Entity():
             'K':"Keep"
             }
 
-    
+
 
         self.box_size = None
         self.HitboxClass = None
         self.walkable = False
-        
+
     def __repr__(self):
         return f"ent<{self.id},{self.representation},Y:{self.cell_Y},X:{self.cell_X},sz:{self.sq_size}>"
-    
+
     def collide_with_shape(self, shape):
         Class = SHAPE_MAPPING.get(self.HitboxClass, None)
 
         shape_self = Class(self.position.x, self.position.y, self.box_size)
 
         return shape_self.collide_with(shape)
-    
+
     def collide_with_entity(self, entity):
 
         Class = SHAPE_MAPPING.get(self.HitboxClass, None)
@@ -62,9 +62,9 @@ class Entity():
 
         entClass = SHAPE_MAPPING.get(entity.HitboxClass, None)
         ent_shape = entClass(entity.position.x, entity.position.y, entity.box_size)
-        
+
         Status = False
-  
+
         if shape_self.collide_with(ent_shape):
             Status = True
         # i wrote it like this on purpose incase there is some future update

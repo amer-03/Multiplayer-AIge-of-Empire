@@ -422,6 +422,8 @@ class Map:
 
         self.c_generate_clusters(num_players, gen_mode)
 
+        print(f"GEN: {self.id_generator.id_ticket}")
+
     def c_generate_clusters(self, num_players, gen_mode):
 
         current_directory = os.path.dirname(__file__)
@@ -538,7 +540,7 @@ class Map:
                             current_player.current_population += 1
 
                         self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x01)
-
+                        print(f"=>>>{entity_instance}")
             current_player_resources = gen_option.get("resources").copy() # we dont want togive it as a pointer else all players will share the same resources haha
             current_player.add_resources(current_player_resources)
 

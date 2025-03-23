@@ -142,7 +142,7 @@ UNITS = ["h","m","s","x","c","a","v"]
 #smart way for generation
 MODE_GENERATION = {
     LEAN:{
-        "resources":{"gold":50, "wood":200, "food":50},
+        "resources":{"gold":50, "wood":200, "food":10},
         "entities":{
             "T":1,
             "v":3
