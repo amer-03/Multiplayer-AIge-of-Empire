@@ -2,6 +2,7 @@ class NetworkQueryParser:
 
     @staticmethod
     def parse_query(query):
+        print(query)
         # Use maxsplit parameter to limit unnecessary splits
         header_func = query.split("/", 1)
         headerf = header_func[0]

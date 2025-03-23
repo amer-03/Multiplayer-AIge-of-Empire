@@ -16,7 +16,7 @@
 #define FALSE 0
 #define BUFFER_SIZE 1472
 #define ID_SIZE 10
-#define SEPARATOR ':'
+#define SEPARATOR '~'
 
 #define REUSEADDR_FLAG 1
 #define BROADCAST_FLAG 1

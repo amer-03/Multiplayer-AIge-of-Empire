@@ -104,7 +104,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
 
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size) {
     if (ntohs(comm->destination_addr.sin_port) != PYTHON_PORT){
-        snprintf(packet, packet_size, "%s:%s", comm->instance_id, query);
+        snprintf(packet, packet_size, "%s%s%s", comm->instance_id, SEPARATOR, query);
     } else {
         strncpy(packet, query, packet_size - 1);
         packet[packet_size - 1] = '\0';
