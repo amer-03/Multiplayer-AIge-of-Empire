@@ -7,7 +7,7 @@ class JoinMenu:
         self.screen = screen
         self.font = pygame.font.Font(MEDIEVALSHARP, 22)
 
-        rect_width, rect_height = 600, 350  
+        rect_width, rect_height = 600, 350
         self.players_rect = pygame.Rect(
             (screen.get_width() - rect_width) // 2,
             (screen.get_height() - rect_height) // 2,
@@ -36,25 +36,27 @@ class JoinMenu:
 
         self.selected_ip = None
 
+    def generate_color(self, port, taille, mode, joueurs):
+        seed = hash(f"{port}-{taille}-{mode}-{joueurs}")
+        r = (seed & 0xFF0000) >> 16
+        g = (seed & 0x00FF00) >> 8
+        b = seed & 0x0000FF
+        return (r % 256, g % 256, b % 256)
+
     def draw(self):
         screen_width, screen_height = self.screen.get_size()
         self.screen.blit(adjust_sprite(START_IMG, screen_width, screen_height), (0, 0))
         pygame.draw.rect(self.screen, (0, 0, 0), self.players_rect)
 
-        # Position de départ pour les colonnes
-        ip_x = self.players_rect.x + 10
-        port_x = ip_x + 140
-        taille_x = port_x + 100
-        mode_x = taille_x + 120
-        joueurs_x = mode_x + 100
+        # Positions des colonnes
+        columns_x = [self.players_rect.x + x for x in [10, 140, 240, 360, 480]]
+        headers = ["IP", "Port", "Size", "Mode", "Player"]
 
-        # Affichage des titres centrés sur leur colonne
+        # Affichage des titres
         header_y = self.players_rect.y + 10
-        self.screen.blit(self.font.render("IP", True, (255, 255, 255)), (ip_x, header_y))
-        self.screen.blit(self.font.render("Port", True, (255, 255, 255)), (port_x, header_y))
-        self.screen.blit(self.font.render("Size", True, (255, 255, 255)), (taille_x, header_y))
-        self.screen.blit(self.font.render("Mode", True, (255, 255, 255)), (mode_x, header_y))
-        self.screen.blit(self.font.render("Player", True, (255, 255, 255)), (joueurs_x, header_y))
+        for i, header in enumerate(headers):
+            text = self.font.render(header, True, (255, 255, 255))
+            self.screen.blit(text, text.get_rect(centerx=columns_x[i] + 50, y=header_y))
 
         clip_rect = self.players_rect.copy()
         clip_rect.y += 50
@@ -65,18 +67,19 @@ class JoinMenu:
             port, taille, mode, joueurs = data
             y_pos = self.players_rect.y + 60 + (idx * self.line_height) - self.scroll_y
 
-            color = (100, 100, 100) if ip == self.selected_ip else (255, 255, 255)
+            # Couleur unique par partie
+            color = self.generate_color(port, taille, mode, joueurs)
+            if ip == self.selected_ip:
+                color = (200, 200, 200)  # Couleur spéciale pour sélection
 
-            # Affichage des données centrées sous chaque titre
-            self.screen.blit(self.font.render(ip, True, color), (ip_x, y_pos))
-            self.screen.blit(self.font.render(str(port), True, color), (port_x, y_pos))
-            self.screen.blit(self.font.render(taille, True, color), (taille_x, y_pos))
-            self.screen.blit(self.font.render(mode, True, color), (mode_x, y_pos))
-            self.screen.blit(self.font.render(str(joueurs), True, color), (joueurs_x, y_pos))
+            items = [ip, str(port), taille, mode, str(joueurs)]
+            for i, item in enumerate(items):
+                text = self.font.render(item, True, color)
+                self.screen.blit(text, text.get_rect(centerx=columns_x[i] + 50, y=y_pos))
 
         self.screen.set_clip(None)
 
-        # Affichage du slider
+        # Slider
         total_lines = len(ALL_IP)
         total_height = total_lines * self.line_height + 60
         if total_height > self.players_rect.height:
@@ -94,7 +97,6 @@ class JoinMenu:
             (self.back_button.x + 15, self.back_button.y + 25),
             (self.back_button.x + 35, self.back_button.y + 40)
         ])
-
 
     def handle_click(self, pos, game_state):
         global SELECTED_IP
