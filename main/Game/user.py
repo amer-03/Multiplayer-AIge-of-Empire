@@ -5,6 +5,7 @@ from network.packettransport.python.CythonCommunicator import *
 # import comm here
 
 from collections import deque
+import subprocess
 
 class User:
 
@@ -14,7 +15,10 @@ class User:
         self.query_snd_queue = deque()
 
         # run the c process here
-
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        communicator_path = os.path.join(script_dir, "..", "network", "packettransport", "C", "communicator")
+        process = subprocess.Popen([communicator_path])
+        print(f"Started communicator from: {communicator_path}")
 
 
         self.team = 1
