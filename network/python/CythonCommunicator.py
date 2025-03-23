@@ -17,6 +17,9 @@ class CythonCommunicator:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(('0.0.0.0', python_port))
         self.sock.setblocking(False)
+        
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, RCVBUF_SIZE)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, SNDBUF_SIZE) 
 
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 
@@ -26,7 +29,7 @@ class CythonCommunicator:
             if isinstance(message, str):
                 message = message.encode('utf-8')
             self.sock.sendto(message, self.c_addr)
-            print(f"[+] Sent: {message.decode() if isinstance(message, bytes) else message}")
+            #print(f"[+] Sent: {message.decode() if isinstance(message, bytes) else message}")
             return True
         except Exception as e:
             print(f"[-] Send failed: {str(e)}")
@@ -38,12 +41,12 @@ class CythonCommunicator:
             ready = select.select([self.sock], [], [], 0)
             if ready[0]:
                 data, addr = self.sock.recvfrom(self.buffer_size)
-                print(f"[+] Received: {data.decode()} from {addr}")
+                #print(f"[+] Received: {data.decode()} from {addr}")
                 return data.decode(), addr
         except Exception as e:
             if not isinstance(e, BlockingIOError):
                 print(f"[-] Receive failed: {str(e)}")
-        return None, None
+        return None
 
     def cleanup(self):
         if hasattr(self, 'sock'):

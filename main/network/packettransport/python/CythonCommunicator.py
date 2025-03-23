@@ -1,7 +1,7 @@
 import socket
 import select
 import time
-from network.packettransport.python.global_vars import *
+from global_vars import *
 
 class CythonCommunicator:
     def __init__(self, python_port, c_port, c_ip = DEFAULT_IP):
@@ -17,6 +17,9 @@ class CythonCommunicator:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(('0.0.0.0', python_port))
         self.sock.setblocking(False)
+        
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, RCVBUF_SIZE)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, SNDBUF_SIZE) 
 
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 
@@ -43,7 +46,7 @@ class CythonCommunicator:
         except Exception as e:
             if not isinstance(e, BlockingIOError):
                 print(f"[-] Receive failed: {str(e)}")
-        return None, None
+        return None
 
     def cleanup(self):
         if hasattr(self, 'sock'):

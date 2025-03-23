@@ -662,7 +662,7 @@ class Player:
 
     def think(self, dt, query_snd_queue):#==============================================
         self.refl_acc +=dt
-        if self.refl_acc>ONE_SEC/3:
+        if self.refl_acc>ONE_SEC:
             self.player_turn(dt, query_snd_queue)
             self.refl_acc=0
 
