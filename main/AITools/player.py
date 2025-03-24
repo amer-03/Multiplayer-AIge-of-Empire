@@ -119,7 +119,7 @@ def train_villager(context, query_snd_queue): #=================================
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
 
         if towncenter.train_unit(context['player'],'v') == TRAIN_SUCCESS:
-            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(towncenter.id, context['player'].team, 'v'))
+            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, towncenter.id, context['player'].team, 'v'))
 
 
         if context['player'].get_current_resources()['food']<50:
@@ -175,7 +175,7 @@ def housing_crisis(context, query_snd_queue): #=================================
     villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
 
     if context['player'].build_entity(villager_id_list, 'H') == BUILDING_SUCCESS:
-        query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, 'H', None))
+        query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].linked_map.id_generator, context['player'].team, villager_id_list, 'H', None))
     return "Building House!"
 
 # ---- Arbre de décision ----

@@ -106,11 +106,15 @@ class QueryExecutor:
 
     @staticmethod
     def exe_train_unit(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
-        args = argsf.split(":", 2) # 3 args
+        args = argsf.split(":", 3) # 4 args
 
-        actor_id = int(args[0]) # int actor_id
-        player_team = int(args[1]) # int player_team
-        entity_repr = args[2] # char entity_rper
+        idticket = ast.literal_eval(args[0])
+        actor_id = int(args[1]) # int actor_id
+        player_team = int(args[2]) # int player_team
+        entity_repr = args[3] # char entity_rper
+
+        #if idticket != None:
+        game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
         sts = QueryExecutor.exe_verify_sync(game_map, [actor_id], queue_snd_queue, qfailed)
 
@@ -124,12 +128,16 @@ class QueryExecutor:
     @staticmethod
     def exe_player_build_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
-        args = argsf.split(":", 3) # 4 args
+        args = argsf.split(":", 4) # 5 args
 
-        player_team = int(args[0]) # int player_team
-        villager_id_list = ast.literal_eval(args[1]) # int[] villager id list
-        _representation = args[2] # char represenation = ""
-        _entity_id = ast.literal_eval(args[3]) # entity_id = None
+        idticket = ast.literal_eval(args[0])
+        player_team = int(args[1]) # int player_team
+        villager_id_list = ast.literal_eval(args[2]) # int[] villager id list
+        _representation = args[3] # char represenation = ""
+        _entity_id = ast.literal_eval(args[4]) # entity_id = None
+
+        #if idticket != None:
+        game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
         sts = QueryExecutor.exe_verify_sync(game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
 
