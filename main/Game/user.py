@@ -48,7 +48,7 @@ class User:
 
     def handle_all_rcv_queries(self, game_map):
 
-        print(f"failed queries: {self.failed_queries}")
+        #print(f"failed queries: {self.failed_queries}")
 
         current_query = None
 

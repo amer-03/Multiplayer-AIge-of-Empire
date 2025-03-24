@@ -44,8 +44,8 @@ class AIProfile:
                             counter = 0
                             if c_pointer<len(c_ids)-1:
                                 c_pointer += 1
-                        v.collect_entity(c_ids[c_pointer])
-                        query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
+                        if v.collect_entity(c_ids[c_pointer]):
+                            query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
                         counter += 1
                     else:
                         if context['drop_off_id'] is None:
@@ -105,8 +105,8 @@ class AIProfile:
                                 if c_pointer<len(c_ids)-1:
                                     c_pointer += 1
 
-                            v.collect_entity(c_ids[c_pointer])
-                            query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
+                            if v.collect_entity(c_ids[c_pointer]):
+                                query_snd_queue.append(NetworkQueryFormatter.format_collect_entity(v.id, c_ids[c_pointer]))
 
                             counter += 1
                         if v.is_full():

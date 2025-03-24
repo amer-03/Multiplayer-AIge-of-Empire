@@ -32,12 +32,12 @@
 #define EXTERNAL_PORT 50002
 
 #define LOCALHOST_IP "127.0.0.1"
-#define BROADCAST_IP "255.255.255.255"
+#define BROADCAST_IP "192.168.1.190"
 
 typedef struct {
-    int sockfd;                         
+    int sockfd;
     struct sockaddr_in destination_addr;
-    struct sockaddr_in listener_addr;   
+    struct sockaddr_in listener_addr;
     char recv_buffer[BUFFER_SIZE];
     char instance_id[ID_SIZE];
 } Communicator;

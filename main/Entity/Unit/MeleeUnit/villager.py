@@ -216,6 +216,18 @@ class Villager(MeleeUnit):
         if self.resource_target_id == None:
             if not(self.state == UNIT_IDLE):
                 self.change_state(UNIT_IDLE)
+        else:
+            resource_target = self.linked_map.get_entity_by_id(resource_target_id)
+
+            if resource_target.state != BUILDING_ACTIVE:
+                if not(self.state == UNIT_IDLE):
+                    self.change_state(UNIT_IDLE)
+                self.resource_target_id = None
+
+                return False
+
+            return True
+
 
     def attack_entity(self, entity_id):
         self.resource_target_id = None # if collecting we stop and attack
