@@ -34,6 +34,8 @@ JSON_MAPPING['Spear'] = Spear
 JSON_MAPPING['FireArrow'] = FireArrow
 JSON_MAPPING['FireSpear'] = FireSpear
 JSON_MAPPING['PVector2'] = PVector2
+JSON_MAPPING['Storage'] = Storage
+JSON_MAPPING['Habitat'] = Habitat
 
 CLASS_MAPPING = {
     'A': ArcheryRange,

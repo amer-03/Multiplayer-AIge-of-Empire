@@ -24,7 +24,7 @@ class User:
         print(f"Started communicator from: {communicator_path}")
 
 
-        self.team = 1
+        self.team = USER
         self.connected = False
 
     def add_query(self, query, flag):
