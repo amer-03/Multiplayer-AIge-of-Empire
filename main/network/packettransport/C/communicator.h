@@ -24,7 +24,7 @@
 #define SNDBUF_SIZE 10485760
 #define SOCKET_PRIORITY 6
 
-#define SLEEP_TIME 1
+#define SLEEP_TIME 1000
 
 #define PYTHON_PORT 50000
 #define C_PORT1 50001
@@ -32,7 +32,7 @@
 #define EXTERNAL_PORT 50002
 
 #define LOCALHOST_IP "127.0.0.1"
-#define BROADCAST_IP "192.168.1.190"
+#define BROADCAST_IP "192.168.39.137"
 
 typedef struct {
     int sockfd;

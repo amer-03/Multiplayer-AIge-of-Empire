@@ -435,7 +435,7 @@ class Player:
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
                     self.remove_resources(Instance.cost)
                     Instance.state = BUILDING_INPROGRESS
-                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x1)
+                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0)
 
                     for villager_id in villager_id_list:
                         villager = self.linked_map.get_entity_by_id(villager_id)

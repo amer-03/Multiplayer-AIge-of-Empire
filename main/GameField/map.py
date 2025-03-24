@@ -414,7 +414,7 @@ class Map:
 
         for _ in range(total_tiles):
             current_gold = Gold(self.id_generator,center_Y, center_X, None)
-            self.add_entity_to_closest(current_gold, center_Y, center_X, random_padding=0x1)
+            self.add_entity_to_closest(current_gold, center_Y, center_X, random_padding=0x0)
 
     def generate_map(self,gen_mode = MAP_NORMAL , mode = MARINES ,num_players=3):
 
@@ -549,7 +549,7 @@ class Map:
                             current_player.add_population()
                             current_player.current_population += 1
 
-                        self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x01)
+                        self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x00)
                         print(f"=>>>{entity_instance}")
             current_player_resources = gen_option.get("resources").copy() # we dont want togive it as a pointer else all players will share the same resources haha
             current_player.add_resources(current_player_resources)
