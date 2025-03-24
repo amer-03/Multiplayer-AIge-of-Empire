@@ -4,7 +4,7 @@ from idgen import *
 from shapely.geometry import Point, Polygon
 import math
 from shape import *
-
+import ast
 class Entity():
     def __init__(self, id_gen, cell_Y, cell_X, position, team, representation, sq_size = 1,id = None):
         self.cell_Y = cell_Y
@@ -61,13 +61,24 @@ class Entity():
 
         if 'linked_map' in attributes:
             del attributes['linked_map'] # avoid saving the map
+        attributes['__class__'] = self.__class__.__name__
 
         for key, value in list(attributes.items()):
             if hasattr(value, 'to_dict'):
                 attributes[key] = value.to_dict() # special format for personal object
             elif hasattr(value, 'to_json'):
                 attributes[key] = value.to_json() # special format for entit ( function itself )
-
+            elif isinstance(value, dict):
+                # Convert dict with non-string keys to a serializable format
+                new_dict = {}
+                for k, v in value.items():
+                    if not isinstance(k, (str, int, float, bool)) or k is None:
+                        # Convert non-string keys to string with a special format
+                        new_key = f"__tuple__{str(k)}"
+                    else:
+                        new_key = k
+                    new_dict[new_key] = v
+                attributes[key] = new_dict
         return attributes
 
     @classmethod
@@ -77,7 +88,21 @@ class Entity():
         for key, value in list(data.items()):
             if key != 'nonposition':
                 if isinstance(value, dict): # check if it is a dict ( maybe an object that has been transformed to object )
+                    new_dict = {}
+                    for k, v in value.items():
+                        if isinstance(k, str) and k.startswith("__tuple__"):
+                            # Convert back to tuple
+                            tuple_str = k[9:]  # Remove "__tuple__" prefix
+                            # Safely evaluate the tuple string
 
+                            tuple_key = ast.literal_eval(tuple_str)
+                            new_dict[tuple_key] = v
+                        else:
+                            new_dict[k] = v
+
+                    # If we made any conversions, replace the dict
+                    if new_dict:
+                        data[key] = new_dict
                     if '__class__' in value: # if __class__ in it then it is not
 
                         obj_class = JSON_MAPPING.get(value.pop('__class__', None)) # remove from the value the __class__ indicator, and put

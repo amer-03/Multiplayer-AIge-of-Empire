@@ -147,6 +147,7 @@ class QueryExecutor:
         entity_id = int(argsf) # one arg is the id of the object to send
 
         entity = game_map.get_entity_by_id(entity_id)
+        print(entity)
         entity_json = entity.to_json()
 
         query = NetworkQueryFormatter.format_create_entity_rep(entity_json)
