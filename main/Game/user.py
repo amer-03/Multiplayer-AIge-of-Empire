@@ -8,6 +8,9 @@ import subprocess
 
 class User:
 
+
+
+
     def __init__(self):
         self.communicator = CythonCommunicator(python_port=PYTHON_PORT, c_port=C_PORT)
         self.query_rcv_queue = deque()
@@ -53,7 +56,7 @@ class User:
         current_query = None
 
         for query in self.failed_queries.copy():
-            QueryExecutor.handle_query(game_map, query, self.query_snd_queue, self.failed_queries)
+            QueryExecutor.handle_query(game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
 
         while ((current_query := self.get_query("r")) != None):
             QueryExecutor.handle_query(game_map, current_query,self.query_snd_queue, self.failed_queries)

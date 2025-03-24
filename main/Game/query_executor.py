@@ -182,7 +182,7 @@ class QueryExecutor:
         }
 
     @staticmethod
-    def handle_query(game_map, query, queue_snd_queue, failed_queries):
+    def handle_query(game_map, query, queue_snd_queue, failed_queries, qfailed = False):
         status = None
 
         queryf = NetworkQueryParser.parse_query(query)
@@ -190,7 +190,6 @@ class QueryExecutor:
         if queryf["headerf"] == "A": # action type queries
             fct = QueryExecutor._fct_map.get(queryf["callf"], None)
 
-            qfailed = query in failed_queries
             if fct != None:
                 status = fct(game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
 
@@ -200,4 +199,4 @@ class QueryExecutor:
                         failed_queries.remove(query)
                 else:
                     if not qfailed:
-                        failed_queries.remove(query)
+                        failed_queries.add(query)
