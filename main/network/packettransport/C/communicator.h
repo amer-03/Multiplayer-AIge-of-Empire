@@ -14,7 +14,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 1472
+#define BUFFER_SIZE 5000
 #define ID_SIZE 10
 #define SEPARATOR '~'
 

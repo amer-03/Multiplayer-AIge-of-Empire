@@ -146,7 +146,11 @@ class QueryExecutor:
         entity = game_map.get_entity_by_id(entity_id)
         entity_json = entity.to_json()
 
+        print(f"ENTITY TO SEND:{entity_json}")
+
+
         query = NetworkQueryFormatter.format_create_entity_rep(entity_json)
+        queue_snd_queue.append(query)
 
         return True
 
@@ -154,7 +158,8 @@ class QueryExecutor:
         args = argsf # one arg is the string json
         json = JsonProcessor.to_json(args)
 
-        cls = JSON_MAPPING.get(json.pop('__class__', None), None)
+        cls_name = json.pop('__class__', None)
+        cls = JSON_MAPPING.get(cls_name, None)
 
         obj = None
 
@@ -164,7 +169,9 @@ class QueryExecutor:
         exists = game_map.get_entity_by_id(obj.id)
 
         if exists:
-            return True # dont add it
+            return True # dont add  it
+
+        print(f"ENTITY CREATED :{obj}")
 
         game_map.add_entity(obj, from_json = True)
 
