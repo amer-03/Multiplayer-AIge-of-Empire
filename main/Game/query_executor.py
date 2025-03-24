@@ -172,6 +172,11 @@ class QueryExecutor:
             return True # dont add  it
 
         print(f"ENTITY CREATED :{obj}")
+        if isinstance(obj, Unit):
+            player = game_map.get_player_by_team(obj.team)
+
+            player.add_population()
+            player.current_population += 1
 
         game_map.add_entity(obj, from_json = True)
 
