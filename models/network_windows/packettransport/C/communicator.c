@@ -1,4 +1,6 @@
 #include "communicator.h"
+#include <time.h>
+
 
 void generate_instance_id(Communicator* comm) {
     srand((unsigned int)(time(NULL) ^ GetCurrentProcessId()));

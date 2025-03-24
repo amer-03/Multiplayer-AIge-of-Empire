@@ -13,10 +13,10 @@
 #define SEPARATOR '|'
 
 // À adapter selon ton contexte
-#define C_PORT1 4000
-#define C_PORT2 4001
-#define PYTHON_PORT 5000
-#define EXTERNAL_PORT 6000
+#define C_PORT1 50001
+#define C_PORT2 50002
+#define PYTHON_PORT 50000
+#define EXTERNAL_PORT 50002
 #define LOCALHOST_IP "127.0.0.1"
 #define BROADCAST_IP "255.255.255.255"
 #define SLEEP_TIME_MS 100
