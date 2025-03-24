@@ -6,7 +6,7 @@ PROJECTILE_TYPE_MAPPING = {
     "pa":Arrow,
     "ps":Spear,
     "fpa":FireArrow,
-    "fps":FireSpear 
+    "fps":FireSpear
 }
 
 
@@ -15,8 +15,7 @@ class RangedUnit(Unit):
     def __init__(self,id_gen, cell_Y, cell_X, position, team, representation, hp, cost, training_time, speed, attack, attack_speed , _range, _projetctile_type):
         super().__init__(id_gen,cell_Y, cell_X, position, team, representation, hp, cost, training_time, speed, attack, attack_speed, _range)
         self.projetctile_type = _projetctile_type
-        self.projetctile_padding = None 
-        self.last = pygame.time.get_ticks()
+        self.projetctile_padding = None
 
     def check_in_range_with(self, entity):
         range_circle = Circle(self.position.x, self.position.y, self.linked_map.tile_size_2d * self.range)
@@ -26,7 +25,7 @@ class RangedUnit(Unit):
     def try_to_damage(self, dt, _entity):
         global PROJECTILE_TYPE_MAPPING
 
-        self.attack_time_acc += dt 
+        self.attack_time_acc += dt
         if self.first_time_pass or (self.attack_time_acc> self.attack_delta_time):
             if (self.first_time_pass):
                 self.first_time_pass = False
@@ -72,7 +71,7 @@ class RangedUnit(Unit):
                                 if not(self.state == UNIT_IDLE):
                                     self.change_state(UNIT_IDLE)
                 else:
-                    players = self.linked_map.players_dict 
+                    players = self.linked_map.players_dict
                     cteam = None
                     cdist = float('inf')
 
@@ -104,7 +103,7 @@ class RangedUnit(Unit):
             """
             if self.entity_defend_from_id != None:
                 entity = self.linked_map.get_entity_by_id(self.entity_defend_from_id)
-                
+
                 if entity != None:
                     if entity.is_dead() or entity.team == self.team:
                         self.entity_defend_from_id = None
@@ -112,7 +111,7 @@ class RangedUnit(Unit):
                     else:
 
                         dist = math.sqrt((self.cell_X - entity.cell_X)**2 + (self.cell_Y - entity.cell_Y)**2)
-                        
+
                         if dist > 10:
                             self.entity_defend_from_id = None
                             entity = None
@@ -129,9 +128,9 @@ class RangedUnit(Unit):
                     if (entity.is_dead() == False):
 
                         if not(self.check_range_with_target):
-                            
+
                             if (self.check_in_range_with(entity)):
-                                
+
                                 self.check_range_with_target = True
                                 self.locked_with_target = True
 
@@ -147,7 +146,7 @@ class RangedUnit(Unit):
                                 self.locked_with_target = False
                                 self.first_time_pass = True
                                 self.try_to_move(dt,camera,screen)
-                        else: # enemy in range  
+                        else: # enemy in range
                             self.target_direction = self.position.alpha_angle(entity.position)
                             dist_to_entity = self.position.abs_distance(entity.position)
 
@@ -165,9 +164,9 @@ class RangedUnit(Unit):
                     if not(self.state == UNIT_IDLE):
                         self.change_state(UNIT_IDLE)
                     self.reset_target()
-            
+
     def display(self, dt, screen, camera, g_width, g_height):
-        #draw_isometric_circle(camera, screen, self.position.x, self.position.y, self.range*TILE_SIZE_2D, TEAM_COLORS.get(self.team)) 
-        #draw_isometric_circle(camera, screen, self.position.x, self.position.y, 10*TILE_SIZE_2D, TEAM_COLORS.get(self.team)) 
+        #draw_isometric_circle(camera, screen, self.position.x, self.position.y, self.range*TILE_SIZE_2D, TEAM_COLORS.get(self.team))
+        #draw_isometric_circle(camera, screen, self.position.x, self.position.y, 10*TILE_SIZE_2D, TEAM_COLORS.get(self.team))
 
         super().display(dt, screen, camera, g_width, g_height)

@@ -19,8 +19,22 @@ class PVector2:
             'x':self.x,
             'y':self.y,
             'z':self.z,
-            'representation':self.representation
+            'representation':self.representation,
+            '__class__':self.__class__.__name__
         }
+
+    @classmethod
+    def load(cls, from_dict):
+        instance = cls.__new__(cls) # skip the constructor
+        instance.x = from_dict['x']
+        instance.y = from_dict['y']
+        instance.z = from_dict['z']
+
+        instance.representation = from_dict['representation']
+
+
+
+        return instance
 
     def __add__(self,other_vector):
         return PVector2(self.x + other_vector.x,self.y + other_vector.y)
@@ -108,27 +122,7 @@ class PVector2:
 
         return data_to_save
 
-    @classmethod
-    def load(cls, data_to_load):
-        global SAVE_MAPPING
-        instance = cls.__new__(cls) # skip the __init__()
-        current_attr_value = None
-        for attr_name, attr_value in data_to_load.items():
 
-            if (isinstance(attr_value, dict)): # has the attribute representation then we will see
-
-                ClassLoad = SAVE_MAPPING.get(attr_value.get("representation", None), None)
-                if (ClassLoad): # has a load method in the method specified in it
-
-                    current_attr_value = ClassLoad.load(attr_value)
-                else:
-                    current_attr_value = attr_value
-            else:
-                current_attr_value = attr_value
-
-            setattr(instance, attr_name, current_attr_value)
-
-        return instance
 
     def __str__(self):
         return f"({self.x},{self.y},{self.z})"

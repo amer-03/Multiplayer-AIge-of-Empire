@@ -7,8 +7,17 @@ class Habitat:
     def to_dict(self):
         return {
             "capacity":self.capacity,
-            "current_population":self.current_population
+            "current_population":self.current_population,
+            '__class__':self.__class__.__name__
         }
+
+    @classmethod
+    def load(cls, from_dict):
+        instance = cls.__new__(cls) # skip the constructor
+        instance.capacity = from_dict['capacity']
+        instance.current_population = from_dict['current_population']
+
+        return instance
 
     def add_population(self):
         if self.current_population < self.capacity:

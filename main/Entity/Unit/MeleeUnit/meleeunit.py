@@ -22,7 +22,6 @@ class MeleeUnit(Unit):
             if self.animation_frame >= self.attack_frame and self.will_attack:
                 self.will_attack = False
                 entity.hp -= self.attack
-                self.last = pygame.time.get_ticks()
                 if entity.is_dead():
                     if entity.representation in ['C','T','v']:
                             if entity.state != STATES.get(entity.representation, None).get("dying", None):

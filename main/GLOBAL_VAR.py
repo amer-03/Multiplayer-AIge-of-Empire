@@ -143,7 +143,7 @@ UNITS = ["h","m","s","x","c","a","v"]
 #smart way for generation
 MODE_GENERATION = {
     LEAN:{
-        "resources":{"gold":50, "wood":200, "food":10},
+        "resources":{"gold":50, "wood":200, "food":50},
         "entities":{
             "T":1,
             "v":3
@@ -417,6 +417,7 @@ WATER_MARK_SKIP = {
     "T":[(2,0,4), (2,0,16)]
 }
 META_SPRITES_CACHE ={}
+JSON_MAPPING = {}
 
 def META_SPRITES_CACHE_HANDLE(zoom_level, list_keys, camera): # returns image to display
 

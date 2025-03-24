@@ -27,6 +27,8 @@ class Map:
 
         self.players_dict = {} # each element is a player, and the key is the team number 1 : team1 2 : team2
 
+        self.units_being_trained = {}
+
         # for the minimap
         self.minimap = MiniMap(PVector2(1000,300), _nb_CellX, _nb_CellY)
 
@@ -55,7 +57,7 @@ class Map:
         else:
             return 0xff
 
-    def add_entity(self, _entity):
+    def add_entity(self, _entity, from_json = False):
 
         assert (_entity != None), 0x0001 # to check if the entity is not null in case there were some problem in the implementation
 
@@ -70,11 +72,12 @@ class Map:
         if not(isinstance(_entity, Unit)):# or isinstance(_entity, Farm) or (_entity.representation in ["W", "G"])):
             cell_padding = 1
 
-        for Y_to_check in range(_entity.cell_Y + cell_padding,_entity.cell_Y - _entity.sq_size - cell_padding, -1): # we add minus 1 cause we need at least one cell free so that the units can reach this target
-            for X_to_check in range(_entity.cell_X + cell_padding,_entity.cell_X - _entity.sq_size - cell_padding, -1):
+        if not(from_json):
+            for Y_to_check in range(_entity.cell_Y + cell_padding,_entity.cell_Y - _entity.sq_size - cell_padding, -1): # we add minus 1 cause we need at least one cell free so that the units can reach this target
+                for X_to_check in range(_entity.cell_X + cell_padding,_entity.cell_X - _entity.sq_size - cell_padding, -1):
 
-                if self.check_cell(Y_to_check, X_to_check):
-                    return 0 # not all the cells are free to put the entity
+                    if self.check_cell(Y_to_check, X_to_check):
+                        return 0 # not all the cells are free to put the entity
 
         for Y_to_set in range(_entity.cell_Y,_entity.cell_Y - _entity.sq_size, -1):
             for X_to_set in range(_entity.cell_X,_entity.cell_X - _entity.sq_size, -1):
@@ -100,25 +103,31 @@ class Map:
 
                 current_cell.add(_entity)
 
-        topleft_cell = PVector2(self.tile_size_2d/2 + ( _entity.cell_X - (_entity.sq_size - 1))*self.tile_size_2d, self.tile_size_2d/2 + (_entity.cell_Y - (_entity.sq_size - 1))*self.tile_size_2d)
-        bottomright_cell =  PVector2(self.tile_size_2d/2 + ( _entity.cell_X )*self.tile_size_2d, self.tile_size_2d/2 + (_entity.cell_Y )*self.tile_size_2d)
+        if not(from_json):
+            topleft_cell = PVector2(self.tile_size_2d/2 + ( _entity.cell_X - (_entity.sq_size - 1))*self.tile_size_2d, self.tile_size_2d/2 + (_entity.cell_Y - (_entity.sq_size - 1))*self.tile_size_2d)
+            bottomright_cell =  PVector2(self.tile_size_2d/2 + ( _entity.cell_X )*self.tile_size_2d, self.tile_size_2d/2 + (_entity.cell_Y )*self.tile_size_2d)
 
-        _entity.position = (bottomright_cell + topleft_cell ) * (0.5)
-        _entity.box_size = bottomright_cell.x - _entity.position.x  # distance from the center to the corners of the collision box
+            _entity.position = (bottomright_cell + topleft_cell ) * (0.5)
+            _entity.box_size = bottomright_cell.x - _entity.position.x  # distance from the center to the corners of the collision box
 
 
-        if isinstance(_entity, Unit):
-            _entity.box_size += TILE_SIZE_2D/(2 * 2.5) # for the units hitbox is smaller
-            _entity.move_position.x = _entity.position.x
-            _entity.move_position.y = _entity.position.y # well when the unit is added its target pos to move its it self se it doesnt move
+            if isinstance(_entity, Unit):
+                if _entity.id in self.units_being_trained:
+                    self.units_being_trained.pop(_entity.id, None)
+                _entity.box_size += TILE_SIZE_2D/(2 * 2.5) # for the units hitbox is smaller
+                _entity.move_position.x = _entity.position.x
+                _entity.move_position.y = _entity.position.y # well when the unit is added its target pos to move its it self se it doesnt move
 
-        else:
-            _entity.box_size += TILE_SIZE_2D/(2) # the factors used the box_size lines are to choosen values for a well scaled collision system with respec to the type and size of the entity
+            else:
+                _entity.box_size += TILE_SIZE_2D/(2) # the factors used the box_size lines are to choosen values for a well scaled collision system with respec to the type and size of the entity
+
         if _entity.team != 0:
             player = self.players_dict.get(_entity.team, None)
 
             if player:
                 player.add_entity(_entity)
+
+
         else:
             resource_set = self.resource_id_dict.get(_entity.representation, None)
 
@@ -132,6 +141,7 @@ class Map:
         # at the end add the entity pointer to the id dict with the id dict
 
         self.entity_id_dict[_entity.id] = _entity
+
         return 1 # added the entity succesfully
 
     def add_entity_to_closest(self, entity, cell_Y, cell_X, random_padding = 0x00, min_spacing = 4, max_spacing = 5):

@@ -1,4 +1,4 @@
-
+from jsonprocessor import *
 class NetworkQueryFormatter:
 
     # All units
@@ -74,10 +74,10 @@ class NetworkQueryFormatter:
     @staticmethod
     def format_config_req():
 
-        return f"C/config_req+{None}"
+        return f"R/config_req+{None}"
 
     @staticmethod
-    def format_config_resp(seed, cellY, cellX, num_players, mode):
+    def format_config_rep(seed, cellY, cellX, num_players, mode):
 
         """
         seed : map seed
@@ -88,4 +88,18 @@ class NetworkQueryFormatter:
 
         """
 
-        return f"C/config_resp+{seed}:{cellY}:{cellX}:{num_players}:{mode}"
+        return f"R/config_resp+{seed}:{cellY}:{cellX}:{num_players}:{mode}"
+
+    @staticmethod
+    def format_create_entity_req(entity_id):
+        """
+        entity_id : the entity id we want to request its attr
+        """
+        return f"A/cerq+{entity_id}"
+
+    @staticmethod
+    def format_create_entity_rep(entity_json):
+        """
+        entity_json : dict of ONLY necessary attributes to create the entity ( NO CODE, key is the name of the attr ( can't be a method ) and the value int or str or list or dict)
+        """
+        return f"A/cerp+{JsonProcessor.to_string(entity_json)}"

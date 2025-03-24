@@ -36,7 +36,7 @@ class Unit(Entity):
         self.target_direction = None
         self.direction_update_time_acc = 0
 
-        #self.last_time_collided = pygame.time.get_ticks()
+
         self.walkable = True
         self.state = UNIT_IDLE
         self.attack_delta_time = None
@@ -47,7 +47,6 @@ class Unit(Entity):
         self.animation_direction = 0 # direction index for display
         self.animation_time_acc = 0
         self.animation_speed = []  # Animation frame interval in milliseconds for each unit_state
-        self.linked_map = None
         self.HitboxClass = "Circle"
 
         self._entity_optional_target_id = None

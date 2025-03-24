@@ -1,6 +1,5 @@
 
 from Game.query_executor import *
-from network.QueryProcessing.networkqueryparser import *
 from network.packettransport.python.CythonCommunicator import *
 # import comm here
 
@@ -13,6 +12,7 @@ class User:
         self.communicator = CythonCommunicator(python_port=PYTHON_PORT, c_port=C_PORT)
         self.query_rcv_queue = deque()
         self.query_snd_queue = deque()
+        self.failed_queries = set()
 
         # run the c process here
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,9 +49,11 @@ class User:
     def handle_all_rcv_queries(self, game_map):
 
         current_query = None
+        for query in self.failed_queries.copy():
+            QueryExecutor.handle_query(game_map, query, self.query_snd_queue, self.failed_queries)
 
         while ((current_query := self.get_query("r")) != None):
-            QueryExecutor.handle_query(game_map, NetworkQueryParser.parse_query(current_query))
+            QueryExecutor.handle_query(game_map, current_query,self.query_snd_queue, self.failed_queries)
 
     def handle_all_snd_queries(self):
 
@@ -62,6 +64,7 @@ class User:
 
 
     def update(self, dt, game_map):
+
 
 
         packet_rcvd, addr = self.communicator.receive_packet()

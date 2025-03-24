@@ -20,9 +20,9 @@ class Entity():
 
 
 
-
+        self.linked_map = None
         self.box_size = None
-        self.HitboxClass = None
+        self.HitboxClass = None # char not a class
         self.walkable = False
 
     def __repr__(self):
@@ -65,5 +65,32 @@ class Entity():
         for key, value in list(attributes.items()):
             if hasattr(value, 'to_dict'):
                 attributes[key] = value.to_dict() # special format for personal object
+            elif hasattr(value, 'to_json'):
+                attributes[key] = value.to_json() # special format for entit ( function itself )
 
         return attributes
+
+    @classmethod
+    def load(cls, json):
+        data = json.copy()
+
+        for key, value in list(data.items()):
+            if key != 'nonposition':
+                if isinstance(value, dict): # check if it is a dict ( maybe an object that has been transformed to object )
+
+                    if '__class__' in value: # if __class__ in it then it is not
+
+                        obj_class = JSON_MAPPING.get(value.pop('__class__', None)) # remove from the value the __class__ indicator, and put
+
+                        if obj_class and hasattr(obj_class, 'load'): # recheck for the load method
+                            data[key] = obj_class.load(value)
+
+
+        instance = cls.__new__(cls) # skip the construtor
+
+        for key, value in data.items():
+            setattr(instance, key, value)
+
+        instance.linked_map = None
+
+        return instance

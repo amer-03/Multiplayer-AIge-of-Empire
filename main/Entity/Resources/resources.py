@@ -11,8 +11,9 @@ class Resources(Entity):
         self.resource_indicator = resource_indicator
         self.max_storage = storage_capacity
         self.display_choice = 0
-        self.linked_map = None
+        self.state = BUILDING_ACTIVE
         self.HitboxClass = "RoundedSquare"
+
     def display(self, dt, screen, camera, g_width, g_height):
         iso_x, iso_y = camera.convert_to_isometric_2d(self.position.x, self.position.y)
         #camera.draw_box(screen, self)

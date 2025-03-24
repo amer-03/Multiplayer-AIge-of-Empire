@@ -5,8 +5,16 @@ class Storage:
 
     def to_dict(self):
         return {
-            "resources":self.resources
+            "resources":self.resources,
+            '__class__':self.__class__.__name__
         }
+
+    @classmethod
+    def load(cls, from_dict):
+        instance = cls.__new__(cls) # skip the constructor
+        instance.resources = from_dict['resources']
+
+        return instance
 
     def add_resource(self, resource_type, amount):
         if resource_type not in self.resources:

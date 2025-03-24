@@ -11,6 +11,29 @@ from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
 from collections import deque # the queue of the user that contains the action to send
 
 
+JSON_MAPPING['ArcheryRange'] = ArcheryRange
+JSON_MAPPING['Barracks'] = Barracks
+JSON_MAPPING['Camp'] = Camp
+JSON_MAPPING['Keep'] = Keep
+JSON_MAPPING['TownCenter'] = TownCenter
+JSON_MAPPING['Farm'] = Farm
+JSON_MAPPING['Gold'] = Gold
+JSON_MAPPING['Tree'] = Tree
+JSON_MAPPING['Stable'] = Stable
+JSON_MAPPING['House'] = House
+JSON_MAPPING['HorseMan'] = HorseMan
+JSON_MAPPING['Archer'] = Archer
+JSON_MAPPING['SwordMan'] = SwordMan
+JSON_MAPPING['Villager'] = Villager
+JSON_MAPPING['CavalryArcher'] = CavalryArcher
+JSON_MAPPING['SpearMan'] = SpearMan
+JSON_MAPPING['AxeMan'] = AxeMan
+JSON_MAPPING['Projectile'] = Projectile
+JSON_MAPPING['Arrow'] = Arrow
+JSON_MAPPING['Spear'] = Spear
+JSON_MAPPING['FireArrow'] = FireArrow
+JSON_MAPPING['FireSpear'] = FireSpear
+JSON_MAPPING['PVector2'] = PVector2
 
 CLASS_MAPPING = {
     'A': ArcheryRange,
@@ -299,6 +322,7 @@ class Player:
         self.entities_dict = {}
         self.linked_map = None
 
+
         self.decision_tree= tree
         strat = choose_strategy(self)
         print(f"[+] Player n : {team}, strat : {'aggressive'}")
@@ -311,6 +335,8 @@ class Player:
         self.life_time = 0
 
     def add_entity(self, entity):
+
+
 
         entity_dict = self.entities_dict.get(entity.representation, None)
 
@@ -553,6 +579,7 @@ class Player:
             if current_habitat:
                 if current_habitat.habitat.add_population():
                     return True
+
         return False
 
     def remove_population(self):
@@ -655,6 +682,8 @@ class Player:
     def update(self, dt):
         self.life_time += dt/ONE_SEC
 
+
+        # 200004
         self.update_population(dt)
 
 

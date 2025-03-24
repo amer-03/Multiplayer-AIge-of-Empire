@@ -47,6 +47,10 @@ class TrainingBuilding(Building):
                     self.time_left = None
 
 
+    def spawn_instantly(self):
+        if self.unit_being_trained:
+            self.time_left = -1 # ensure to spwan instantly
+            self.try_to_train(0) # call the try_to_train and it will ad the unit instantly
 
     def train_unit(self, player, entity_repr):
         if self.state == BUILDING_ACTIVE:
@@ -63,6 +67,7 @@ class TrainingBuilding(Building):
                             self.unit_being_trained = unit
 
                             self.time_left = self.unit_being_trained.training_time * ONE_SEC
+                            self.linked_map.units_being_trained[unit.id] = self.id
 
                             return TRAIN_SUCCESS
                     else:

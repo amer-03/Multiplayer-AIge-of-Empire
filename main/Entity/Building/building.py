@@ -11,7 +11,6 @@ class Building(Entity):
         self.cost = cost
         self.build_time = build_time
         self.walkable = walkable
-        self.linked_map = None
         self.display_choice = 0
         self.animation_time_acc = 0
         self.animation_frame = 0
@@ -153,6 +152,12 @@ class Building(Entity):
                     if self.build_progress >= 1:
                         self.change_state(BUILDING_ACTIVE)
 
+    def spawn_instantly(self):
 
+        if self.state == BUILDING_INPROGRESS:
+            self.change_state(BUILDING_ACTIVE)
+            self.hp = self.max_hp
+
+        pass
     def get_html(self):
         return f'<li class="building">{DICT_RPR.get(self.representation)}<br> Position : {self.position}</li>'
