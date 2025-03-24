@@ -21,7 +21,7 @@ class User:
         print(f"Started communicator from: {communicator_path}")
 
 
-        self.team = 2
+        self.team = 1
         self.connected = False
 
     def add_query(self, query, flag):
@@ -48,7 +48,10 @@ class User:
 
     def handle_all_rcv_queries(self, game_map):
 
+        print(f"failed queries: {self.failed_queries}")
+
         current_query = None
+
         for query in self.failed_queries.copy():
             QueryExecutor.handle_query(game_map, query, self.query_snd_queue, self.failed_queries)
 
