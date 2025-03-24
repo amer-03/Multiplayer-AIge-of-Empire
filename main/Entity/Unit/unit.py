@@ -308,6 +308,7 @@ class Unit(Entity):
                                     distance = self.position.abs_distance(entity.position)
 
                                     if isinstance(entity, Unit):
+                                        """
                                         if distance < COLLISION_THRESHOLD and distance > 1:
                                             if self.collide_with_entity(entity):
 
@@ -324,6 +325,8 @@ class Unit(Entity):
                                                 #entity.position -= diff * 0.5
                                                 collided = True
                                                 current_num += 1
+                                        """
+                                        print("ignore this message")
                                     elif not(entity.walkable):
                                         if entity.id != self._entity_optional_target_id:
                                             if self.collide_with_entity(entity):
