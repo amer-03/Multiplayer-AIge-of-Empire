@@ -13,12 +13,12 @@
 #define SEPARATOR '|'
 
 // À adapter selon ton contexte
-#define C_PORT1 50001
+#define C_PORT1 40001
 #define C_PORT2 50002
-#define PYTHON_PORT 50000
+#define PYTHON_PORT 60000
 #define EXTERNAL_PORT 50002
 #define LOCALHOST_IP "127.0.0.1"
-#define BROADCAST_IP "255.255.255.255"
+#define BROADCAST_IP "172.20.10.15"
 #define SLEEP_TIME_MS 100
 
 typedef struct {
