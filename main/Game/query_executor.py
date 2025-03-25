@@ -14,7 +14,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         target_id = int(args[1]) # int target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -45,6 +45,7 @@ class QueryExecutor:
                     if not(qfailed): # if this is the first time it fails we send the request
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
                 elif entity.netp == None:
+                    status = False 
                     if not(qfailed):
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
                 elif isinstance(entity, Building) and not(build_action):
@@ -62,7 +63,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         build_target_id = int(args[1]) # int build_target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
+        sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
@@ -79,7 +80,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         drop_target_id = int(args[1]) # int drop_target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -97,7 +98,7 @@ class QueryExecutor:
 
         resource_target_id = int(args[1])
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -118,7 +119,7 @@ class QueryExecutor:
         #if idticket != None:
         game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -141,7 +142,7 @@ class QueryExecutor:
         #if idticket != None:
         game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
@@ -190,18 +191,28 @@ class QueryExecutor:
 
         exists = game_map.get_entity_by_id(obj.id)
 
+        player = game_map.get_player_by_team(obj.team)
+        
         if exists:
 
             game_map.remove_entity(obj)
 
-        print(f"ENTITY CREATED :{obj}")
+        else:
+
+            print(f"ENTITY CREATED :{obj}")
+            
+
+            if isinstance(obj, Building):
+
+                player.remove_resources(obj.cost)
+
+        game_map.add_entity(obj, from_json = True)
+
         if isinstance(obj, Unit):
-            player = game_map.get_player_by_team(obj.team)
+                
 
             player.add_population()
             player.current_population += 1
-
-        game_map.add_entity(obj, from_json = True)
 
         return True
 
@@ -226,7 +237,7 @@ class QueryExecutor:
             fct = QueryExecutor._fct_map.get(queryf["callf"], None)
 
             if fct != None:
-                status = fct( game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
+                status = fct(myteam, game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
 
 
                 if status:
