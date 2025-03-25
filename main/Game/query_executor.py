@@ -14,7 +14,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         target_id = int(args[1]) # int target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -60,7 +60,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         build_target_id = int(args[1]) # int build_target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
@@ -77,7 +77,7 @@ class QueryExecutor:
         actor_id = int(args[0]) # int actor_id
         drop_target_id = int(args[1]) # int drop_target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -95,7 +95,7 @@ class QueryExecutor:
 
         resource_target_id = int(args[1])
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -116,7 +116,7 @@ class QueryExecutor:
         #if idticket != None:
         game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -139,7 +139,7 @@ class QueryExecutor:
         #if idticket != None:
         game_map.id_generator.team_tickets[player_team] = idticket # update the generator
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
@@ -223,7 +223,7 @@ class QueryExecutor:
             fct = QueryExecutor._fct_map.get(queryf["callf"], None)
 
             if fct != None:
-                status = fct( game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
+                status = fct(myteam, game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
 
 
                 if status:
