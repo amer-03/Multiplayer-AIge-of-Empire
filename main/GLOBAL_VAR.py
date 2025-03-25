@@ -1,7 +1,20 @@
 import math
 import random
-MAIN_RANDOM = random.Random(0xba)
-USER = 2
+
+class RandGen:
+
+    def __init__(self, seed):
+
+        self.rnd = random.Random(seed)
+
+class UserGen:
+
+    def __init__(self, id):
+        self.id = id 
+
+MAIN_RANDOM = RandGen(0xba)
+user_n = 2
+USER = UserGen(user_n)
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7

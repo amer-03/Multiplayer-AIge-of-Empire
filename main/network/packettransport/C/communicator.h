@@ -35,6 +35,7 @@
 //#define BROADCAST_IP "192.168.155.138" // kali
 //#define BROADCAST_IP "172.20.10.2" // mint
 #define BROADCAST_IP "255.255.255.255"
+
 typedef struct {
     int sockfd;
     struct sockaddr_in destination_addr;
