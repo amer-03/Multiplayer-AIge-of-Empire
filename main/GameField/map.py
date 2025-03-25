@@ -6,6 +6,7 @@ import math
 from AITools.player import *
 from AITools.clustergenerator import *
 from collections import deque
+from network.QueryProcessing.networkqueryformatter import *
 class Map:
 
     def __init__(self,_nb_CellX , _nb_CellY):
@@ -57,15 +58,14 @@ class Map:
         else:
             return 0xff
 
-    def add_entity(self, _entity, from_json = False):
-
-        assert (_entity != None), 0x0001 # to check if the entity is not null in case there were some problem in the implementation
+    def check_add_entity(self, _entity, from_json = False):
 
         entity_in_matrix = (_entity.cell_X - (_entity.sq_size - 1) >= 0 and _entity.cell_Y - (_entity.sq_size - 1) >= 0) and ( _entity.cell_X < self.nb_CellX and _entity.cell_Y < self.nb_CellY)
 
         if (entity_in_matrix == False):
 
             return 0 # to check if all the cells that will be occupied by the entity are in the map
+
 
         cell_padding = 0
 
@@ -78,6 +78,17 @@ class Map:
 
                     if self.check_cell(Y_to_check, X_to_check):
                         return 0 # not all the cells are free to put the entity
+
+        return 1
+
+    def add_entity(self, _entity, from_json = False):
+
+        assert (_entity != None), 0x0001 # to check if the entity is not null in case there were some problem in the implementation
+
+
+        if not(self.check_add_entity(_entity, from_json)):
+
+            return 0
 
         for Y_to_set in range(_entity.cell_Y,_entity.cell_Y - _entity.sq_size, -1):
             for X_to_set in range(_entity.cell_X,_entity.cell_X - _entity.sq_size, -1):
@@ -144,7 +155,7 @@ class Map:
 
         return 1 # added the entity succesfully
 
-    def add_entity_to_closest(self, entity, cell_Y, cell_X, random_padding = 0x00, min_spacing = 4, max_spacing = 5):
+    def add_entity_to_closest(self, entity, cell_Y, cell_X, random_padding = 0x00, min_spacing = 4, max_spacing = 5, query_snd_q = None):
 
 
         startY = cell_Y
@@ -183,7 +194,10 @@ class Map:
                     entity.cell_Y = current_Y
                     entity.cell_X = current_X
 
-                    if (self.add_entity(entity)):
+                    if (self.check_add_entity(entity)):
+                        self.add_entity(entity)
+                        if query_snd_q != None :
+                            query_snd_q.append(NetworkQueryFormatter.format_create_entity_rep(self.id_generator, entity.team, entity.to_json()))
                         added = True
                 else:
                     break

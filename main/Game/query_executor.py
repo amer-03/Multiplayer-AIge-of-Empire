@@ -157,14 +157,21 @@ class QueryExecutor:
         print(f"ENTITY TO SEND:{entity_json}")
 
 
-        query = NetworkQueryFormatter.format_create_entity_rep(entity_json)
+        query = NetworkQueryFormatter.format_create_entity_rep(game_map.id_generator, entity.team, entity_json)
         queue_snd_queue.append(query)
 
         return True
 
     def exe_create_entity_rep(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
-        args = argsf # one arg is the string json
-        json = JsonProcessor.to_json(args)
+
+        args = argsf.split(":", 2)# 3 args
+
+        idticket = ast.literal_eval(args[0])
+        player_team = int(args[1])
+
+        game_map.id_generator.team_tickets[player_team] = idticket
+
+        json = JsonProcessor.to_json(args[2])
 
         cls_name = json.pop('__class__', None)
         cls = JSON_MAPPING.get(cls_name, None)

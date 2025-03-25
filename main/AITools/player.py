@@ -176,8 +176,8 @@ def build_structure(context, query_snd_queue): #================================
 def housing_crisis(context, query_snd_queue): #==============================================
     villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
 
-    if context['player'].build_entity(villager_id_list, 'H') == BUILDING_SUCCESS:
-        query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].linked_map.id_generator, context['player'].team, villager_id_list, 'H', None))
+    context['player'].build_entity(villager_id_list, 'H', query_snd_queue = query_snd_queue)
+    #query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].linked_map.id_generator, context['player'].team, villager_id_list, 'H', None))
     return "Building House!"
 
 # ---- Arbre de décision ----
@@ -425,7 +425,7 @@ class Player:
 
         return id_list
 
-    def build_entity(self, villager_id_list, representation = "", entity_id = None):
+    def build_entity(self, villager_id_list, representation = "", entity_id = None, query_snd_queue = None):
         if villager_id_list:
             if entity_id == None:
                 if (representation in ["T","H"]) and (len(self.get_entities_by_class(["T","H"])) * 5) >= MAX_UNIT_POPULATION:
@@ -437,13 +437,16 @@ class Player:
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
                     self.remove_resources(Instance.cost)
                     Instance.state = BUILDING_INPROGRESS
-                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0)
+                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0, query_snd_q = query_snd_queue)
 
                     for villager_id in villager_id_list:
                         villager = self.linked_map.get_entity_by_id(villager_id)
 
                         if villager != None:
                             villager.build_entity(Instance.id)
+
+                            if query_snd_queue != None:
+                                query_snd_queue.append(NetworkQueryFormatter.format_villager_build_entity(villager.id, Instance.id))
 
                     return BUILDING_SUCCESS
                 """

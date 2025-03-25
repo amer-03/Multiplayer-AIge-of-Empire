@@ -25,6 +25,8 @@ class Entity():
         self.hc = None # char not a class
         self.walkable = False
 
+        self.netp = None # prop reseaux
+
     def __repr__(self):
         return f"ent<{self.id},{self.representation},Y:{self.cell_Y},X:{self.cell_X},sz:{self.sq_size}>"
 

@@ -102,8 +102,11 @@ class NetworkQueryFormatter:
         return f"A/cerq+{entity_id}"
 
     @staticmethod
-    def format_create_entity_rep(entity_json):
+    def format_create_entity_rep(id_gen, player_team, entity_json):
         """
         entity_json : dict of ONLY necessary attributes to create the entity ( NO CODE, key is the name of the attr ( can't be a method ) and the value int or str or list or dict)
         """
-        return f"A/cerp+{JsonProcessor.to_string(entity_json)}"
+
+        idticket = id_gen.team_tickets.get(player_team, None) # update the id_gen for the player to client
+
+        return f"A/cerp+{idticket}:{player_team}:{JsonProcessor.to_string(entity_json)}"
