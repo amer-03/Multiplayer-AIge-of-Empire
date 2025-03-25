@@ -12,8 +12,7 @@
 #include <time.h>
 #include <sys/socket.h>
 
-#define DISCOVERY_INTERVAL 10  // Seconds between discovery broadcasts
-#define DISCOVERY_TIMEOUT 30   // Timeout for player discovery
+#define DISCOVERY_INTERVAL 60  // Seconds between discovery broadcasts
 #define DISCOVERY_MESSAGE "DISCOVER_REQUEST"
 #define DISCOVERY_REPLY "DISCOVER_REPLY"
 
@@ -57,6 +56,7 @@ typedef struct {
 
 typedef struct {
     char ip[INET_ADDRSTRLEN];     // IP address
+    int port;
     char instance_id[ID_SIZE];    // Unique instance identifier
     time_t last_seen;             // Last time this player was active
     int PacketsCount;
@@ -69,20 +69,21 @@ typedef struct {
 
 void generate_instance_id(Communicator* comm);
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr);
-char* construct_buffer(Communicator* comm, const char* query);
-int send_buffer(Communicator* comm, const char* buffer);
-int process_buffer(Communicator* comm, PacketInfo* packet);
-int receive_buffer(Communicator* comm, struct sockaddr_in sender);
-void cleanup_communicator(Communicator* comm);
-
-// Updated player table functions
 PlayersTable* init_player_table();
-int find_player(PlayersTable* table, const char* ip);
-int add_player(PlayersTable* table, const char* ip, const char* instance_id);
-void remove_player(PlayersTable* table, const char* ip);
-void cleanup_stale_players(PlayersTable* table, time_t max_age);
-void print_players(PlayersTable* table);
+void initPacketInfo(PacketInfo* packetInfo, struct sockaddr_in sender, const char* sender_id, const char* query, int id);
+void reset_packet(PacketInfo* packetInfo);
+void initPlayerInfo(PlayerInfo* playerInfo, const char* ip, const int port, const char* instance_id);
+void resetPlayerInfo(PlayerInfo* playerInfo);
+char* construct_buffer(Communicator* comm, const char* query);
+int process_buffer(Communicator* comm, PacketInfo* packet);
+int send_buffer(Communicator* comm, const char* buffer);
+int receive_buffer(Communicator* comm, struct sockaddr_in* sender);
+void cleanup_communicator(Communicator* comm);
+int find_player(PlayersTable* Ptable, PacketInfo* packet);
+int add_player(PlayersTable* PTable, PacketInfo* packet);
+void remove_player(char* sender_id, PlayersTable* playersTable);
+void print_players(PlayersTable* Ptable);
 void send_discovery_broadcast(Communicator* external_communicator);
-int handle_discovery(PacketInfo* packet, PlayersTable* players_table);
+int send_to_players(PlayersTable* Ptable, Communicator* comm, const char* buffer);
 
 #endif // COMMUNICATOR_H

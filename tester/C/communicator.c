@@ -106,98 +106,6 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     return comm;
 }
 
-char* construct_buffer(Communicator* comm, const char* query) {
-    size_t buffer_size = BUFFER_SIZE;
-    char* buffer = malloc(buffer_size * sizeof(char));
-    if (ntohs(comm->destination_addr.sin_port) != PYTHON_PORT){
-        snprintf(buffer, buffer_size, "%s%c%s", comm->instance_id, SEPARATOR, query);
-    } else {
-        strncpy(buffer, query, buffer_size - 1);
-        buffer[buffer_size - 1] = '\0';
-    }
-
-    return buffer;
-}
-
-int send_buffer(Communicator* comm, const char* buffer) {
-    int result = sendto(comm->sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
-    if (result < 0) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("Send failed");
-        }
-        return -1;
-    }
-    return result;
-}
-
-int process_buffer(Communicator* comm, PacketInfo* packet) {
-    // Use strlen to check if buffer contains data, instead of address comparison
-    if (!packet || strlen(comm->recv_buffer) == 0) return -1;
-
-    char* buffer = comm->recv_buffer;
-    char* separator = strchr(buffer, SEPARATOR);
-    
-    if (!separator) {
-        packet->sender_id = NULL;
-        packet->query = malloc(strlen(buffer) * sizeof(char) + 1);
-        if (packet->query == NULL) {
-            printf("Memory allocation failed.\n");
-            return -1;
-        }
-        memcpy(packet->query, buffer, strlen(buffer) + 1);
-        return 1;
-    }
-    
-    size_t id_length = separator - buffer;
-    size_t copy_size = (id_length < ID_SIZE - 1) ? id_length : ID_SIZE - 1;
-    packet->sender_id = malloc(ID_SIZE * sizeof(char));
-    if (packet->sender_id == NULL) {
-        perror("Memory allocation failed.");
-        return -1;
-    }
-
-    if (strncmp(buffer, comm->instance_id, copy_size) == 0){
-        free(packet->sender_id);
-        packet->sender_id = NULL;
-        return 0;
-    }
-
-    memcpy(packet->sender_id, buffer, copy_size);
-    packet->sender_id[copy_size] = '\0';
-
-    packet->query = malloc(strlen(comm->recv_buffer) * sizeof(char) + 1);
-    if (packet->query == NULL) {
-        printf("Memory allocation failed.\n");
-        free(packet->sender_id);
-        return -1;
-    }
-    memcpy(packet->query, separator + 1, strlen(separator+1) + 1);
-    return 1;
-}
-
-int receive_buffer(Communicator* comm, struct sockaddr_in sender) {
-    socklen_t sender_len = sizeof(sender);
-    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender, &sender_len);
-    
-    if (recv_len <= 0) {
-        if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("Receive failed");
-        }
-        return 0;
-    }
-    
-    comm->recv_buffer[recv_len] = '\0';
-    return recv_len;
-}
-
-void cleanup_communicator(Communicator* comm) {
-    if (comm) {
-        close(comm->sockfd);
-        free(comm);
-        printf("[+] Communicator cleaned up\n");
-    }
-}
-
 PlayersTable* init_player_table() {
     // Allocate memory for the table
     PlayersTable* Ptable = malloc(sizeof(PlayersTable));
@@ -213,82 +121,249 @@ PlayersTable* init_player_table() {
     return Ptable;
 }
 
-int find_player(PlayersTable* Ptable, const char* ip) {
+// Function to initialize PacketInfo
+void initPacketInfo(PacketInfo* packetInfo, struct sockaddr_in sender, const char* sender_id, const char* query, int id) {
+    packetInfo->sender = sender;
+    packetInfo->sender_id = strdup(sender_id);
+    packetInfo->query = strdup(query);
+    packetInfo->id = id;
+}
+
+// Function to reset PacketInfo
+void reset_packet(PacketInfo* packetInfo) {
+    if (packetInfo) {
+        // Only free if not already NULL
+        if (packetInfo->sender_id) {
+            free(packetInfo->sender_id);
+            packetInfo->sender_id = NULL;
+        }
+        if (packetInfo->query) {
+            free(packetInfo->query);
+            packetInfo->query = NULL;
+        }
+        memset(&packetInfo->sender, 0, sizeof(struct sockaddr_in));
+        packetInfo->id = 0;
+    }
+}
+
+// Function to initialize PlayerInfo
+void initPlayerInfo(PlayerInfo* playerInfo, const char* ip, const int port, const char* instance_id) {
+    strncpy(playerInfo->ip, ip, INET_ADDRSTRLEN - 1);
+    playerInfo->ip[INET_ADDRSTRLEN - 1] = '\0';  // Ensure null-termination
+
+    strncpy(playerInfo->instance_id, instance_id, ID_SIZE - 1);
+    playerInfo->instance_id[ID_SIZE - 1] = '\0';  // Ensure null-termination
+
+    playerInfo->port = port;
+    printf("Player added - IP: %s, Port: %d, Instance ID: %s\n", ip, port, instance_id);
+
+    playerInfo->last_seen = time(NULL);
+    playerInfo->PacketsCount = 0;
+}
+
+// Function to reset PlayerInfo
+void resetPlayerInfo(PlayerInfo* playerInfo) {
+    memset(playerInfo->ip, 0, INET_ADDRSTRLEN);
+    memset(playerInfo->instance_id, 0, ID_SIZE);
+    playerInfo->last_seen = 0;
+    playerInfo->PacketsCount = 0;
+}
+
+char* construct_buffer(Communicator* comm, const char* query) {
+    size_t buffer_size = BUFFER_SIZE;
+    char* buffer = malloc(buffer_size * sizeof(char));
+    if (ntohs(comm->destination_addr.sin_port) != PYTHON_PORT){
+        snprintf(buffer, buffer_size, "%s%c%s", comm->instance_id, SEPARATOR, query);
+    } else {
+        strncpy(buffer, query, buffer_size - 1);
+        buffer[buffer_size - 1] = '\0';
+    }
+
+    return buffer;
+}
+
+int process_buffer(Communicator* comm, PacketInfo* packet) {
+    // Use strlen to check if buffer contains data, instead of address comparison
+    if (!packet || strlen(comm->recv_buffer) == 0) return -1;
+
+    char* buffer = comm->recv_buffer;
+    char* separator = strchr(buffer, SEPARATOR);
+    
+    // Reset any existing memory
+    if (packet->sender_id) {
+        free(packet->sender_id);
+        packet->sender_id = NULL;
+    }
+    if (packet->query) {
+        free(packet->query);
+        packet->query = NULL;
+    }
+    
+    if (!separator) {
+        packet->query = strdup(buffer);
+        if (packet->query == NULL) {
+            printf("Memory allocation failed.\n");
+            return -1;
+        }
+        return 1;
+    }
+    
+    size_t id_length = separator - buffer;
+    size_t copy_size = (id_length < ID_SIZE - 1) ? id_length : ID_SIZE - 1;
+    
+    packet->sender_id = malloc(ID_SIZE * sizeof(char));
+    if (packet->sender_id == NULL) {
+        perror("Memory allocation failed.");
+        return -1;
+    }
+
+    if (strncmp(buffer, comm->instance_id, copy_size) == 0){
+        free(packet->sender_id);
+        packet->sender_id = NULL;
+        return 0;
+    }
+
+    memcpy(packet->sender_id, buffer, copy_size);
+    packet->sender_id[copy_size] = '\0';
+
+    packet->query = strdup(separator + 1);
+    if (packet->query == NULL) {
+        printf("Memory allocation failed.\n");
+        free(packet->sender_id);
+        packet->sender_id = NULL;
+        return -1;
+    }
+    
+    return 1;
+}
+
+int send_buffer(Communicator* comm, const char* buffer) {
+    int result = sendto(comm->sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+    if (result < 0) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            perror("Send failed");
+        }
+        return -1;
+    }
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &comm->destination_addr.sin_addr, ip_str, sizeof(ip_str));
+    if(result > 0) printf("[+] Sent %d bytes to %s:%d (%s)\n", result, ip_str, ntohs(comm->destination_addr.sin_port),buffer);
+    return result;
+}
+
+int receive_buffer(Communicator* comm, struct sockaddr_in* sender) {
+    socklen_t sender_len = sizeof(*sender);
+    memset(sender, 0, sizeof(*sender));  // Correctly zeroing out sender
+    
+    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)sender, &sender_len);
+    
+    if (recv_len <= 0) {
+        if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
+            perror("Receive failed");
+        }
+        return 0;
+    }
+
+    char ip_str[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &(sender->sin_addr), ip_str, sizeof(ip_str)) == NULL) {
+         fprintf(stderr, "Failed to convert IP address\n");
+         strcpy(ip_str, "Unknown");
+    }
+
+    // Log received message
+    printf("[+] Received %d bytes from %s:%d (%s)\n", recv_len, ip_str, ntohs(sender->sin_port), comm->recv_buffer);
+
+    comm->recv_buffer[recv_len] = '\0';
+    return recv_len;
+}
+
+void cleanup_communicator(Communicator* comm) {
+    if (comm) {
+        close(comm->sockfd);
+        free(comm);
+        printf("[+] Communicator cleaned up\n");
+    }
+}
+
+int find_player(PlayersTable* Ptable, PacketInfo* packet) {
     for (int i = 0; i < Ptable->count; i++) {
-        if (strcmp(Ptable->players[i].ip, ip) == 0) {
+        if (strcmp(Ptable->players[i].instance_id, packet->sender_id) == 0) {
+            // Player exists, update last_seen and PacketsCount
+            Ptable->players[i].last_seen = time(NULL);
+            Ptable->players[i].PacketsCount += 1;
+            printf("Updated existing player: %s\n", packet->sender_id);
             return i;
         }
     }
+
     return -1;
 }
 
-int add_player(PlayersTable* Ptable, const char* ip, const char* instance_id) {
+int add_player(PlayersTable* PTable, PacketInfo* packet) {
+    if (PTable->count >= MAX_PLAYERS) {
+        printf("Players table is full. Cannot add more players.\n");
+        return -1;
+    }
+
+    // Detailed debugging of sender information
+    char ip_str[INET_ADDRSTRLEN] = "UNKNOWN";
+    int port = 0;
+
+    // Attempt to convert IP
+    if (packet->sender.sin_family == AF_INET) {
+        if (inet_ntop(AF_INET, &(packet->sender.sin_addr), ip_str, INET_ADDRSTRLEN) == NULL) {
+            perror("Failed to convert IP address");
+        }
+        
+        // Convert port from network to host order
+        port = ntohs(packet->sender.sin_port);
+    }
+
     // Check if player already exists
-    int index = find_player(Ptable, ip);
-    
-    if (index != -1) {
-        // Update existing player
-        strncpy(Ptable->players[index].instance_id, instance_id, ID_SIZE - 1);
-        Ptable->players[index].last_seen = time(NULL);
-        return index;
+    int existing_index = find_player(PTable, packet);
+    if (existing_index < 0) {
+        // Add new player
+        PlayerInfo new_player;
+        initPlayerInfo(&new_player, ip_str, port, packet->sender_id);
+
+        // Add to players table
+        PTable->players[PTable->count] = new_player;
+        PTable->count += 1;
+
+        printf("[+] Added new player: %s:%d (Instance ID: %s)\n", 
+               ip_str, port, packet->sender_id);
+        print_players(PTable);
+        return PTable->count - 1;
     }
     
-    // Check if Ptable is full
-    if (Ptable->count >= MAX_PLAYERS) {
-        // Find and replace the oldest player
-        time_t oldest_time = Ptable->players[0].last_seen;
-        int oldest_index = 0;
-        
-        for (int i = 1; i < Ptable->count; i++) {
-            if (Ptable->players[i].last_seen < oldest_time) {
-                oldest_time = Ptable->players[i].last_seen;
-                oldest_index = i;
+    // Update existing player's last seen and packet count
+    PTable->players[existing_index].last_seen = time(NULL);
+    PTable->players[existing_index].PacketsCount += 1;
+    
+    return existing_index;
+}
+
+void remove_player(char* sender_id, PlayersTable* playersTable) {
+    for (int i = 0; i < playersTable->count; i++) {
+        if (strcmp(playersTable->players[i].instance_id, sender_id) == 0) {
+            // Shift remaining players
+            for (int j = i; j < playersTable->count - 1; j++) {
+                playersTable->players[j] = playersTable->players[j + 1];
             }
-        }
-        
-        index = oldest_index;
-    } else {
-        // Add to the end of the list
-        index = Ptable->count++;
-    }
-    
-    // Add new player
-    strncpy(Ptable->players[index].ip, ip, INET_ADDRSTRLEN - 1);
-    strncpy(Ptable->players[index].instance_id, instance_id, ID_SIZE - 1);
-    Ptable->players[index].last_seen = time(NULL);
-    Ptable->players[index].PacketsCount = 0;
-
-    return index;
-}
-
-void remove_player(PlayersTable* Ptable, const char* ip) {
-    int index = find_player(Ptable, ip);
-    if (index == -1) return;
-    
-    // Shift remaining players
-    for (int i = index; i < Ptable->count - 1; i++) {
-        Ptable->players[i] = Ptable->players[i + 1];
-    }
-    
-    Ptable->count--;
-}
-
-void cleanup_stale_players(PlayersTable* Ptable, time_t max_age) {
-    time_t current_time = time(NULL);
-    
-    for (int i = Ptable->count - 1; i >= 0; i--) {
-        if (current_time - Ptable->players[i].last_seen > max_age) {
-            remove_player(Ptable, Ptable->players[i].ip);
+            playersTable->count--;
+            printf("Removed player: %s\n", sender_id);
+            return;
         }
     }
+    printf("Player %s not found.\n", sender_id);
 }
 
 // Print all players (for debugging)
 void print_players(PlayersTable* Ptable) {
     printf("Known players (%d):\n", Ptable->count);
     for (int i = 0; i < Ptable->count; i++) {
-        printf("%d. IP: %s, Instance ID: %s, Last Seen: %ld, Nb Packets: %d\n", 
-               i+1, Ptable->players[i].ip, Ptable->players[i].instance_id, 
+        printf("%d. IP_PORT: %s~%d, Instance ID: %s, Last Seen: %ld, Nb Packets: %d\n", 
+               i+1, Ptable->players[i].ip, Ptable->players[i].port, Ptable->players[i].instance_id, 
                Ptable->players[i].last_seen, Ptable->players[i].PacketsCount);
     }
 }
@@ -300,27 +375,14 @@ void send_discovery_broadcast(Communicator* external_communicator) {
     printf("[+] Sent discovery broadcast\n");
 }
 
-int handle_discovery(PacketInfo* packet, PlayersTable* players_table) {
-    char sender_ip[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &packet->sender.sin_addr, sender_ip, INET_ADDRSTRLEN);
-
-    if (strcmp(packet->query, DISCOVERY_MESSAGE) == 0) {
-        int existed = (find_player(players_table, sender_ip) != -1);
-        add_player(players_table, sender_ip, packet->sender_id);
-        if (!existed) {
-            Communicator* reply_communicator = init_communicator(C_PORT2, ntohs(packet->sender.sin_port), sender_ip);
-            if (reply_communicator) {
-                char* reply_buffer = construct_buffer(reply_communicator, DISCOVERY_REPLY);
-                send_buffer(reply_communicator, reply_buffer);
-                free(reply_buffer);
-                cleanup_communicator(reply_communicator);
-            }
+int send_to_players(PlayersTable* Ptable, Communicator* comm, const char* buffer) {
+    int total_sent = 0;
+    for (int i = 0; i < Ptable->count; i++) {
+        inet_pton(AF_INET, Ptable->players[i].ip, &comm->destination_addr.sin_addr);
+        int result = send_buffer(comm, buffer);
+        if (result > 0) {
+            total_sent++;
         }
-        return 0;
-    } else if (strcmp(packet->query, DISCOVERY_REPLY) == 0) {
-        add_player(players_table, sender_ip, packet->sender_id);
-        return 0;
     }
-    return -1;
+    return total_sent;
 }
-

@@ -36,41 +36,24 @@ int main() {
         if (time(NULL) - last_discovery_time >= DISCOVERY_INTERVAL) {
             send_discovery_broadcast(external_communicator);
             last_discovery_time = time(NULL);
-
-            // Clean up stale players
-            cleanup_stale_players(players_table, DISCOVERY_TIMEOUT);
         }
 
         // Reset packet memory before receiving
-        if (internal_packet.sender_id) free(internal_packet.sender_id);
-        if (internal_packet.query) free(internal_packet.query);
-        if (external_packet.sender_id) free(external_packet.sender_id);
-        if (external_packet.query) free(external_packet.query);
-        memset(&internal_packet, 0, sizeof(PacketInfo));
-        memset(&external_packet, 0, sizeof(PacketInfo));
+        reset_packet(&internal_packet);
+        reset_packet(&external_packet);
 
         // Receive packets only if data is available
-        int external_recv_len = receive_buffer(external_communicator, external_packet.sender);
-        int internal_recv_len = receive_buffer(python_communicator, internal_packet.sender);
+        int external_recv_len = receive_buffer(external_communicator, &(external_packet.sender));
+        int internal_recv_len = receive_buffer(python_communicator, &(internal_packet.sender));
 
         // Process external packet
         if (external_recv_len > 0) {
             int result = process_buffer(external_communicator, &external_packet);
             if (result > 0 && external_packet.query) {
-                int discovery_result = handle_discovery(&external_packet, players_table);
-
-                // If not a discovery message, handle normally
-                if (discovery_result < 0) {
-                    char sender_ip[INET_ADDRSTRLEN];
-                    inet_ntop(AF_INET, &external_packet.sender.sin_addr, sender_ip, INET_ADDRSTRLEN);
-                    
-                    int player_index = find_player(players_table, sender_ip);
-                    if (player_index != -1) {
-                        char* buffer = construct_buffer(python_communicator, external_packet.query);
-                        send_buffer(python_communicator, buffer);
-                        free(buffer);
-                    }
-                }
+                add_player(players_table, &external_packet);
+                char* buffer = construct_buffer(python_communicator, external_packet.query);
+                send_buffer(python_communicator, buffer);
+                free(buffer);
             }
         }
 
@@ -80,7 +63,7 @@ int main() {
             if (result > 0 && internal_packet.query) {
                 printf("Received : %s\n", internal_packet.query);
                 char* buffer = construct_buffer(external_communicator, internal_packet.query);
-                send_buffer(external_communicator, buffer);
+                send_to_players(players_table, external_communicator, buffer);
                 free(buffer);
             }
         }
