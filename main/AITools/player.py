@@ -119,8 +119,8 @@ def check_housing(context):
 def train_villager(context, query_snd_queue): #==============================================
     for towncenter_id in context['player'].get_entities_by_class(['T']):
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
-        
-        if towncenter.train_unit(context['player'],'v') == TRAIN_SUCCESS:
+
+        if towncenter.train_unit(context['player'],'v', query_snd_queue = query_snd_queue) == TRAIN_SUCCESS:
             query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, towncenter.id, context['player'].team, 'v'))
 
 
@@ -459,20 +459,23 @@ class Player:
                 return 0
             else:
                 for villager_id in villager_id_list:
-                        villager = self.linked_map.get_entity_by_id(villager_id)
+                    villager = self.linked_map.get_entity_by_id(villager_id)
 
-                        if villager != None:
-                            villager.build_entity(entity_id)
+                    if villager != None:
+                        villager.build_entity(entity_id)
                 return 1
         else:
             return 0
 
 
     def inform_storages(self, query_snd_queue):
-        print("===>>> INFORMAT")
+        
         if query_snd_queue != None:
+            print("===>>> INFORMAT")
             for storage_id in self.storages_id:
+
                 entity = self.linked_map.get_entity_by_id(storage_id)
+                print(f"hello storage {entity}")
                 query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, entity.to_json()))
 
     def distribute_evenly(self, resource_type, amount):
