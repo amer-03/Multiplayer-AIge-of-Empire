@@ -28,9 +28,9 @@ class Point(Shape):
         )
 
     def _collide_with_circle(self, circle):
-        
+
         distance = math.sqrt((circle.x - self.x)**2 + (circle.y - self.y)**2)
-        return distance < circle.radius 
+        return distance < circle.radius
 class Rectangle(Shape):
     def __init__(self, x, y, width, height):
         self.x = x
@@ -117,7 +117,7 @@ class RoundedSquare(Square):
     def _collide_with_point(self, point):
         # Check if the point is inside the rounded square (taking corners into account)
         rect_collision = (
-            self.x + self.corner_radius 
+            self.x + self.corner_radius
             <= point.x <= self.x + self.width - self.corner_radius and
             self.y <= point.y <= self.y + self.height
         ) or (
@@ -161,8 +161,8 @@ class RoundedSquare(Square):
         return False
 
 SHAPE_MAPPING = {
-    "Circle":Circle,
-    "Rectangle":Rectangle,
-    "Square":Square,
-    "RoundedSquare":RoundedSquare
+    "C":Circle,
+    "R":Rectangle,
+    "S":Square,
+    "RS":RoundedSquare
 }

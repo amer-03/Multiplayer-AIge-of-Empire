@@ -12,7 +12,7 @@ class Resources(Entity):
         self.max_storage = storage_capacity
         self.display_choice = 0
         self.state = BUILDING_ACTIVE
-        self.HitboxClass = "RoundedSquare"
+        self.hc = "RS"
 
     def display(self, dt, screen, camera, g_width, g_height):
         iso_x, iso_y = camera.convert_to_isometric_2d(self.position.x, self.position.y)

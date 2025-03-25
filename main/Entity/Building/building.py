@@ -16,7 +16,7 @@ class Building(Entity):
         self.animation_frame = 0
         self.state = BUILDING_ACTIVE
         self.animation_speed = [1, 1, 20]
-        self.HitboxClass = "Square"
+        self.hc = "S"
         self.builders = {}
         self.build_progress = 0
 

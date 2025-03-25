@@ -1,7 +1,7 @@
 import math
 import random
 MAIN_RANDOM = random.Random(0xba)
-USER = 2
+USER = 1
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7
