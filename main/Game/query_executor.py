@@ -30,28 +30,35 @@ class QueryExecutor:
         status = True
         for aid in actors_id:
             if aid != None:
+                print("---------")
                 entity = game_map.get_entity_by_id(aid)
 
                 spawner_id = game_map.units_being_trained.get(aid, None)
 
                 spawner = game_map.get_entity_by_id(spawner_id)
                 if spawner != None:
+                    print(f"has spawner{spawner}")
                     spawner.spawn_instantly()
 
                 elif entity == None :
+                    print("entity is None")
                     status = False
 
                     if not(qfailed): # if this is the first time it fails we send the request
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
+                """
                 elif entity.netp == None:
+
                     status = False 
                     if not(qfailed):
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
+                """
                 elif isinstance(entity, Building) and not(build_action):
                     if entity.state == BUILDING_INPROGRESS:
+                        print("build_instantly")
                         entity.build_instantly()
 
-
+                print("---------")
         return status
 
     @staticmethod
