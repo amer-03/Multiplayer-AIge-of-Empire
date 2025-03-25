@@ -15,7 +15,6 @@ class QueryExecutor:
         target_id = int(args[1]) # int target_id
 
         sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, target_id], queue_snd_queue, qfailed)
-
         if not(sts):
             return sts
 
@@ -36,7 +35,7 @@ class QueryExecutor:
                 spawner_id = game_map.units_being_trained.get(aid, None)
 
                 spawner = game_map.get_entity_by_id(spawner_id)
-                if spawner:
+                if spawner != None:
                     spawner.spawn_instantly()
 
                 elif entity == None :
@@ -50,7 +49,7 @@ class QueryExecutor:
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
                 elif isinstance(entity, Building) and not(build_action):
                     if entity.state == BUILDING_INPROGRESS:
-                        entity.spawn_instantly()
+                        entity.build_instantly()
 
 
         return status
@@ -62,7 +61,6 @@ class QueryExecutor:
 
         actor_id = int(args[0]) # int actor_id
         build_target_id = int(args[1]) # int build_target_id
-
         sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):

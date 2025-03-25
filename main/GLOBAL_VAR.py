@@ -7,14 +7,14 @@ class RandGen:
 
         self.rnd = random.Random(seed)
 
-class UserGen:
+
+class Ugen:
 
     def __init__(self, id):
         self.id = id 
 
 MAIN_RANDOM = RandGen(0xba)
-user_n = 2
-USER = UserGen(user_n)
+USER = Ugen(1)
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7
