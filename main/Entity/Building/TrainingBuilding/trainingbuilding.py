@@ -32,7 +32,7 @@ class TrainingBuilding(Building):
 
     def try_to_train(self, dt):
 
-        if self.time_left != None and self.unit_being_trained:# if not None
+        if self.time_left != None and self.unit_being_trained != None:# if not None
 
             if self.time_left > (1e-5):
 
@@ -48,7 +48,9 @@ class TrainingBuilding(Building):
 
 
     def spawn_instantly(self):
-        if self.unit_being_trained:
+        print(f"trying to spwn:{self.unit_being_trained.id}")   
+        if self.unit_being_trained != None:
+            print(f"adding : {self.unit_being_trained}")
             self.time_left = -1 # ensure to spwan instantly
             self.try_to_train(0) # call the try_to_train and it will ad the unit instantly
 
@@ -61,7 +63,7 @@ class TrainingBuilding(Building):
 
                     if unit.affordable_by(player.get_current_resources()):
                         if player.get_current_population_capacity() > player.current_population:
-                            player.inform_storages(query_snd_queue)
+                            #player.inform_storages(query_snd_queue)
                             player.remove_resources(unit.cost)
                             player.add_population()
                             player.current_population += 1

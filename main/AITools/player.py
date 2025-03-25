@@ -437,7 +437,7 @@ class Player:
                 Instance = BuildingClass(self.linked_map.id_generator,None, None, None, self.team)
 
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
-                    self.inform_storages(query_snd_queue)
+                    #self.inform_storages(query_snd_queue)
                     self.remove_resources(Instance.cost)
                     Instance.netp = self.team
                     Instance.state = BUILDING_INPROGRESS
