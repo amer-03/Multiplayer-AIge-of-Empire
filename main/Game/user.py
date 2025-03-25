@@ -24,7 +24,7 @@ class User:
         print(f"Started communicator from: {communicator_path}")
 
 
-        self.team = USER
+        self.team = USER.id
         self.seed = 0xba5
 
 
