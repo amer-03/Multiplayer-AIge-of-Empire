@@ -1,18 +1,9 @@
 #include "communicator.h"
-#include <time.h>
-#define MAX_MESSAGES 100
 
-
-/*void generate_instance_id(Communicator* comm) {
+void generate_instance_id(Communicator* comm) {
     srand((unsigned int)(time(NULL) ^ GetCurrentProcessId()));
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
-}*/
-void generate_instance_id(Communicator* comm) {
-    static int compteur = 0;
-    srand((unsigned int)(time(NULL) ^ GetCurrentProcessId() ^ compteur++));
-    snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
-
 
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr) {
     WSADATA wsaData;
@@ -33,6 +24,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
+    // Set non-blocking mode
     u_long mode = 1;
     ioctlsocket(comm->sockfd, FIONBIO, &mode);
 
@@ -40,8 +32,8 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     setsockopt(comm->sockfd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt));
     setsockopt(comm->sockfd, SOL_SOCKET, SO_BROADCAST, (char*)&opt, sizeof(opt));
 
-    int recv_buff = 655360;
-    int send_buff = 655360;
+    int recv_buff = RCVBUF_SIZE;
+    int send_buff = SNDBUF_SIZE;
     setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, (char*)&recv_buff, sizeof(recv_buff));
     setsockopt(comm->sockfd, SOL_SOCKET, SO_SNDBUF, (char*)&send_buff, sizeof(send_buff));
 
@@ -65,15 +57,6 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     printf("[+] Communicator initialized (ID: %s, listening on %d, destination: %d)\n",
         comm->instance_id, listener_port, destination_port);
     return comm;
-}
-
-void cleanup_communicator(Communicator* comm) {
-    if (comm) {
-        closesocket(comm->sockfd);
-        free(comm);
-        WSACleanup();
-        printf("[+] Communicator cleaned up\n");
-    }
 }
 
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size) {
@@ -100,11 +83,22 @@ int send_packet(Communicator* comm, const char* query) {
     return result;
 }
 
-char* receive_packet(Communicator* comm) {
-    static char recent_messages[MAX_MESSAGES][BUFFER_SIZE];
-    static int message_count = 0;
-    static ULONGLONG last_flush_time = 0;
+char* process_packet(char* packet, char* packet_id, size_t id_size) {
+    char* separator = strchr(packet, SEPARATOR);
+    if (!separator) {
+        *packet_id = '\0';
+        return packet;
+    }
 
+    size_t id_len = separator - packet;
+    size_t copy_size = (id_len < id_size - 1) ? id_len : id_size - 1;
+    memcpy(packet_id, packet, copy_size);
+    packet_id[copy_size] = '\0';
+
+    return separator + 1;
+}
+
+char* receive_packet(Communicator* comm) {
     struct sockaddr_in sender_addr;
     int addr_len = sizeof(sender_addr);
 
@@ -121,47 +115,23 @@ char* receive_packet(Communicator* comm) {
 
     comm->recv_buffer[recv_len] = '\0';
 
-    // Extraire l'ID (si présent)
-    char* separator = strchr(comm->recv_buffer, SEPARATOR);
-    if (!separator) {
-        // Pas d'ID → afficher le message brut et stocker
-        if (message_count < MAX_MESSAGES) {
-            strncpy(recent_messages[message_count], comm->recv_buffer, BUFFER_SIZE - 1);
-            recent_messages[message_count][BUFFER_SIZE - 1] = '\0';
-            message_count++;
-        }
-    } else {
-        // Vérifie si le message vient de nous-même
-        size_t id_len = separator - comm->recv_buffer;
-        char packet_id[ID_SIZE];
-        strncpy(packet_id, comm->recv_buffer, id_len);
-        packet_id[id_len] = '\0';
+    char packet_id[ID_SIZE];
+    char* content = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
+    if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
 
-        if (strcmp(packet_id, comm->instance_id) == 0) {
-            return NULL;  // Message auto-envoyé
-        }
-
-        // Stocke uniquement le contenu utile
-        if (message_count < MAX_MESSAGES) {
-            strncpy(recent_messages[message_count], separator + 1, BUFFER_SIZE - 1);
-            recent_messages[message_count][BUFFER_SIZE - 1] = '\0';
-            message_count++;
-        }
+    if (content != comm->recv_buffer) {
+        size_t len = strlen(content);
+        memmove(comm->recv_buffer, content, len + 1);
     }
 
-    // Affichage toutes les 2 secondes
-    ULONGLONG now = GetTickCount();
-    if (now - last_flush_time >= 2000) {
-        if (message_count > 0) {
-            printf("[C] Messages reçus pendant les 2 dernières secondes :\n");
-            for (int i = 0; i < message_count; i++) {
-                printf("  - %s\n", recent_messages[i]);
-            }
-            message_count = 0;
-        }
-        last_flush_time = now;
-    }
-
-    return NULL;
+    return comm->recv_buffer;
 }
 
+void cleanup_communicator(Communicator* comm) {
+    if (comm) {
+        closesocket(comm->sockfd);
+        WSACleanup();
+        free(comm);
+        printf("[+] Communicator cleaned up\n");
+    }
+}
