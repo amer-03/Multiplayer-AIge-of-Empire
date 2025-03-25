@@ -119,7 +119,7 @@ def check_housing(context):
 def train_villager(context, query_snd_queue): #==============================================
     for towncenter_id in context['player'].get_entities_by_class(['T']):
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
-
+        
         if towncenter.train_unit(context['player'],'v') == TRAIN_SUCCESS:
             query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, towncenter.id, context['player'].team, 'v'))
 
@@ -341,7 +341,7 @@ class Player:
 
         if USER.id == entity.team:
             entity.netp = USER.id 
-            
+
         entity_dict = self.entities_dict.get(entity.representation, None)
 
         if entity_dict == None:
@@ -437,6 +437,7 @@ class Player:
                 Instance = BuildingClass(self.linked_map.id_generator,None, None, None, self.team)
 
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
+                    self.inform_storages(query_snd_queue)
                     self.remove_resources(Instance.cost)
                     Instance.state = BUILDING_INPROGRESS
                     self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0, query_snd_q = query_snd_queue)
@@ -467,6 +468,12 @@ class Player:
             return 0
 
 
+    def inform_storages(self, query_snd_queue):
+        print("===>>> INFORMAT")
+        if query_snd_queue != None:
+            for storage_id in self.storages_id:
+                entity = self.linked_map.get_entity_by_id(storage_id)
+                query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, entity.to_json()))
 
     def distribute_evenly(self, resource_type, amount):
 

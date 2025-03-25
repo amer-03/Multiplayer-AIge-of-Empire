@@ -52,7 +52,7 @@ class TrainingBuilding(Building):
             self.time_left = -1 # ensure to spwan instantly
             self.try_to_train(0) # call the try_to_train and it will ad the unit instantly
 
-    def train_unit(self, player, entity_repr):
+    def train_unit(self, player, entity_repr, query_snd_queue = None):
         if self.state == BUILDING_ACTIVE:
             if self.unit_being_trained == None:
                 if entity_repr in self.trainable_units:
@@ -61,6 +61,7 @@ class TrainingBuilding(Building):
 
                     if unit.affordable_by(player.get_current_resources()):
                         if player.get_current_population_capacity() > player.current_population:
+                            player.inform_storages(query_snd_queue)
                             player.remove_resources(unit.cost)
                             player.add_population()
                             player.current_population += 1

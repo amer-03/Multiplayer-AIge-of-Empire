@@ -232,7 +232,7 @@ class AIProfile:
                     for building in training_buildings:
                         b = context['player'].linked_map.get_entity_by_id(building)
                         rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
-
+                        
                         if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
                             query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, b.id, context['player'].team, rpr))
 

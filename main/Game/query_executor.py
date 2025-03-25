@@ -192,7 +192,7 @@ class QueryExecutor:
         exists = game_map.get_entity_by_id(obj.id)
 
         player = game_map.get_player_by_team(obj.team)
-        
+
         if exists:
 
             game_map.remove_entity(obj)
@@ -200,11 +200,6 @@ class QueryExecutor:
         else:
 
             print(f"ENTITY CREATED :{obj}")
-            
-
-            if isinstance(obj, Building):
-
-                player.remove_resources(obj.cost)
 
         game_map.add_entity(obj, from_json = True)
 
