@@ -436,6 +436,7 @@ class Player:
 
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
                     self.remove_resources(Instance.cost)
+                    Instance.netp = self.team
                     Instance.state = BUILDING_INPROGRESS
                     self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0, query_snd_q = query_snd_queue)
 
@@ -456,10 +457,10 @@ class Player:
                 return 0
             else:
                 for villager_id in villager_id_list:
-                        villager = self.linked_map.get_entity_by_id(villager_id)
+                    villager = self.linked_map.get_entity_by_id(villager_id)
 
-                        if villager != None:
-                            villager.build_entity(entity_id)
+                    if villager != None:
+                        villager.build_entity(entity_id)
                 return 1
         else:
             return 0

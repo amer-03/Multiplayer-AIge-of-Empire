@@ -152,7 +152,7 @@ class Building(Entity):
                     if self.build_progress >= 1:
                         self.change_state(BUILDING_ACTIVE)
 
-    def spawn_instantly(self):
+    def build_instantly(self):
 
         if self.state == BUILDING_INPROGRESS:
             self.change_state(BUILDING_ACTIVE)

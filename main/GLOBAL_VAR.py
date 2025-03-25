@@ -6,8 +6,14 @@ class RandGen:
     def __init__(self, seed):
 
         self.rnd = random.Random(seed)
+
+class Ugen:
+
+    def __init__(self, id):
+        self.id = id 
+
 MAIN_RANDOM = RandGen(0xba)
-USER = 2
+USER = Ugen(1)
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7

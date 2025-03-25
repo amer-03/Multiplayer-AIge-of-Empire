@@ -36,7 +36,7 @@ class QueryExecutor:
                 spawner_id = game_map.units_being_trained.get(aid, None)
 
                 spawner = game_map.get_entity_by_id(spawner_id)
-                if spawner:
+                if spawner != None:
                     spawner.spawn_instantly()
 
                 elif entity == None :
@@ -47,7 +47,7 @@ class QueryExecutor:
 
                 elif isinstance(entity, Building) and not(build_action):
                     if entity.state == BUILDING_INPROGRESS:
-                        entity.spawn_instantly()
+                        entity.build_instantly()
 
 
         return status
