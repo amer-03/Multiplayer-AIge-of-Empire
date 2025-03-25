@@ -12,6 +12,9 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
     
+    // Initialize recv_buffer to zero
+    memset(comm->recv_buffer, 0, BUFFER_SIZE);
+
     // Generate random unique ID
     generate_instance_id(comm);
 
@@ -21,7 +24,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    //Non-blocking mode
+    // Non-blocking mode
     int flags = fcntl(comm->sockfd, F_GETFL, 0);
     if (fcntl(comm->sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
         perror("Failed to set socket to non-blocking mode");
@@ -46,8 +49,8 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    int recieve_buff = RCVBUF_SIZE;
-    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
+    int receive_buff = RCVBUF_SIZE;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &receive_buff, sizeof(receive_buff)) < 0) {
         perror("setsockopt SO_RCVBUF failed");
         close(comm->sockfd);
         free(comm);
@@ -70,13 +73,13 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    //Receiving address
+    // Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
     comm->listener_addr.sin_port = htons(listener_port);
     comm->listener_addr.sin_addr.s_addr = INADDR_ANY;
     
-    //Destination address
+    // Destination address
     memset(&comm->destination_addr, 0, sizeof(comm->destination_addr));
     comm->destination_addr.sin_family = AF_INET;
     comm->destination_addr.sin_port = htons(destination_port);
@@ -90,96 +93,101 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    printf("[+] Initialized communicator (ID: %s | Listening on %d | Destination %d)\n",  comm->instance_id, ntohs(comm->listener_addr.sin_port), ntohs(comm->destination_addr.sin_port));
+    printf("[+] Initialized communicator (ID: %s | Listening on %d | Destination %d)\n",  
+           comm->instance_id, ntohs(comm->listener_addr.sin_port), ntohs(comm->destination_addr.sin_port));
     printf("[+] Socket Options :\n");
     printf("\t[~] Non-blocking mode enabled\n");
     printf("\t[~] SO_REUSEADDR: %d\n", reuseaddr);
     printf("\t[~] SO_BROADCAST: %d\n", broadcast);
-    printf("\t[~] SO_RCVBUF: %d bytes\n", recieve_buff);
+    printf("\t[~] SO_RCVBUF: %d bytes\n", receive_buff);
     printf("\t[~] SO_SNDBUF: %d bytes\n", send_buff);
     printf("\t[~] SO_PRIORITY: %d\n", priority);
 
     return comm;
 }
 
-void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size) {
+char* construct_buffer(Communicator* comm, const char* query) {
+    size_t buffer_size = BUFFER_SIZE;
+    char* buffer = malloc(buffer_size * sizeof(char));
     if (ntohs(comm->destination_addr.sin_port) != PYTHON_PORT){
-        snprintf(packet, packet_size, "%s%c%s", comm->instance_id, SEPARATOR, query);
+        snprintf(buffer, buffer_size, "%s%c%s", comm->instance_id, SEPARATOR, query);
     } else {
-        strncpy(packet, query, packet_size - 1);
-        packet[packet_size - 1] = '\0';
+        strncpy(buffer, query, buffer_size - 1);
+        buffer[buffer_size - 1] = '\0';
     }
+
+    return buffer;
 }
 
-int send_packet(Communicator* comm, const char* query) {
-    char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
-    int destination_port = ntohs(comm->destination_addr.sin_port);
-
-    char packet[BUFFER_SIZE];
-    construct_packet(comm, query, packet, BUFFER_SIZE);
-
-    int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+int send_buffer(Communicator* comm, const char* buffer) {
+    int result = sendto(comm->sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Send failed");
         }
         return -1;
     }
-    //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
     return result;
 }
 
-char* process_packet(char* packet, char* packet_id, size_t id_size) {
-    char* separator = strchr(packet, SEPARATOR);
+int process_buffer(Communicator* comm, PacketInfo* packet) {
+    // Use strlen to check if buffer contains data, instead of address comparison
+    if (!packet || strlen(comm->recv_buffer) == 0) return -1;
+
+    char* buffer = comm->recv_buffer;
+    char* separator = strchr(buffer, SEPARATOR);
     
     if (!separator) {
-        *packet_id = '\0';
-        return packet;
+        packet->sender_id = NULL;
+        packet->query = malloc(strlen(buffer) * sizeof(char) + 1);
+        if (packet->query == NULL) {
+            printf("Memory allocation failed.\n");
+            return -1;
+        }
+        memcpy(packet->query, buffer, strlen(buffer) + 1);
+        return 1;
     }
     
-    size_t id_length = separator - packet;
-    size_t copy_size = (id_length < id_size - 1) ? id_length : id_size - 1;
-    
-    memcpy(packet_id, packet, copy_size);
-    packet_id[copy_size] = '\0';
-    
-    return separator + 1;
-}
-
-void log_message(const char* query, const struct sockaddr_in* sender_addr, const char* packet_id) {
-    if (*packet_id) {
-        printf("[+] Received: %s from %s:%d (Sender ID: %s)\n", query, inet_ntoa(sender_addr->sin_addr), ntohs(sender_addr->sin_port), packet_id);
-    } else {
-        printf("[+] Received query without proper ID format: %s from %s:%d\n", query, inet_ntoa(sender_addr->sin_addr), ntohs(sender_addr->sin_port));
+    size_t id_length = separator - buffer;
+    size_t copy_size = (id_length < ID_SIZE - 1) ? id_length : ID_SIZE - 1;
+    packet->sender_id = malloc(ID_SIZE * sizeof(char));
+    if (packet->sender_id == NULL) {
+        perror("Memory allocation failed.");
+        return -1;
     }
+
+    if (strncmp(buffer, comm->instance_id, copy_size) == 0){
+        free(packet->sender_id);
+        packet->sender_id = NULL;
+        return 0;
+    }
+
+    memcpy(packet->sender_id, buffer, copy_size);
+    packet->sender_id[copy_size] = '\0';
+
+    packet->query = malloc(strlen(comm->recv_buffer) * sizeof(char) + 1);
+    if (packet->query == NULL) {
+        printf("Memory allocation failed.\n");
+        free(packet->sender_id);
+        return -1;
+    }
+    memcpy(packet->query, separator + 1, strlen(separator+1) + 1);
+    return 1;
 }
 
-char* receive_packet(Communicator* comm) {
-    struct sockaddr_in sender_addr;
-    socklen_t addr_len = sizeof(sender_addr);
-
-    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender_addr, &addr_len);
+int receive_buffer(Communicator* comm, struct sockaddr_in sender) {
+    socklen_t sender_len = sizeof(sender);
+    int recv_len = recvfrom(comm->sockfd, comm->recv_buffer, BUFFER_SIZE - 1, 0, (struct sockaddr*)&sender, &sender_len);
     
     if (recv_len <= 0) {
         if (recv_len == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Receive failed");
         }
-        return NULL;
+        return 0;
     }
     
     comm->recv_buffer[recv_len] = '\0';
-    
-    char packet_id[ID_SIZE];
-    char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
-    if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
-
-    if (query != comm->recv_buffer) {
-        size_t content_len = strlen(query);
-        memmove(comm->recv_buffer, query, content_len + 1);
-    }
-
-    //log_message(comm->recv_buffer, &sender_addr, packet_id);
-    return comm->recv_buffer;
+    return recv_len;
 }
 
 void cleanup_communicator(Communicator* comm) {
@@ -190,40 +198,50 @@ void cleanup_communicator(Communicator* comm) {
     }
 }
 
-void init_player_table(PlayersTable* table) {
-    table->count = 0;
-    memset(table->players, 0, sizeof(table->players));
+PlayersTable* init_player_table() {
+    // Allocate memory for the table
+    PlayersTable* Ptable = malloc(sizeof(PlayersTable));
+    if (Ptable == NULL) {
+        perror("Memory allocation failed for player table");
+        return NULL;
+    }
+    
+    // Initialize the table
+    Ptable->count = 0;
+    memset(Ptable->players, 0, sizeof(Ptable->players));
+    
+    return Ptable;
 }
 
-int find_player(PlayersTable* table, const char* ip) {
-    for (int i = 0; i < table->count; i++) {
-        if (strcmp(table->players[i].ip, ip) == 0) {
+int find_player(PlayersTable* Ptable, const char* ip) {
+    for (int i = 0; i < Ptable->count; i++) {
+        if (strcmp(Ptable->players[i].ip, ip) == 0) {
             return i;
         }
     }
     return -1;
 }
 
-int add_player(PlayersTable* table, const char* ip, const char* instance_id) {
+int add_player(PlayersTable* Ptable, const char* ip, const char* instance_id) {
     // Check if player already exists
-    int index = find_player(table, ip);
+    int index = find_player(Ptable, ip);
     
     if (index != -1) {
         // Update existing player
-        strncpy(table->players[index].instance_id, instance_id, ID_SIZE - 1);
-        table->players[index].last_seen = time(NULL);
+        strncpy(Ptable->players[index].instance_id, instance_id, ID_SIZE - 1);
+        Ptable->players[index].last_seen = time(NULL);
         return index;
     }
     
-    // Check if table is full
-    if (table->count >= MAX_players) {
+    // Check if Ptable is full
+    if (Ptable->count >= MAX_PLAYERS) {
         // Find and replace the oldest player
-        time_t oldest_time = table->players[0].last_seen;
+        time_t oldest_time = Ptable->players[0].last_seen;
         int oldest_index = 0;
         
-        for (int i = 1; i < table->count; i++) {
-            if (table->players[i].last_seen < oldest_time) {
-                oldest_time = table->players[i].last_seen;
+        for (int i = 1; i < Ptable->count; i++) {
+            if (Ptable->players[i].last_seen < oldest_time) {
+                oldest_time = Ptable->players[i].last_seen;
                 oldest_index = i;
             }
         }
@@ -231,44 +249,78 @@ int add_player(PlayersTable* table, const char* ip, const char* instance_id) {
         index = oldest_index;
     } else {
         // Add to the end of the list
-        index = table->count++;
+        index = Ptable->count++;
     }
     
     // Add new player
-    strncpy(table->players[index].ip, ip, INET_ADDRSTRLEN - 1);
-    strncpy(table->players[index].instance_id, instance_id, ID_SIZE - 1);
-    table->players[index].last_seen = time(NULL);
-    
+    strncpy(Ptable->players[index].ip, ip, INET_ADDRSTRLEN - 1);
+    strncpy(Ptable->players[index].instance_id, instance_id, ID_SIZE - 1);
+    Ptable->players[index].last_seen = time(NULL);
+    Ptable->players[index].PacketsCount = 0;
+
     return index;
 }
 
-void remove_player(PlayersTable* table, const char* ip) {
-    int index = find_player(table, ip);
+void remove_player(PlayersTable* Ptable, const char* ip) {
+    int index = find_player(Ptable, ip);
     if (index == -1) return;
     
     // Shift remaining players
-    for (int i = index; i < table->count - 1; i++) {
-        table->players[i] = table->players[i + 1];
+    for (int i = index; i < Ptable->count - 1; i++) {
+        Ptable->players[i] = Ptable->players[i + 1];
     }
     
-    table->count--;
+    Ptable->count--;
 }
 
-void cleanup_stale_players(PlayersTable* table, time_t max_age) {
+void cleanup_stale_players(PlayersTable* Ptable, time_t max_age) {
     time_t current_time = time(NULL);
     
-    for (int i = table->count - 1; i >= 0; i--) {
-        if (current_time - table->players[i].last_seen > max_age) {
-            remove_player(table, table->players[i].ip);
+    for (int i = Ptable->count - 1; i >= 0; i--) {
+        if (current_time - Ptable->players[i].last_seen > max_age) {
+            remove_player(Ptable, Ptable->players[i].ip);
         }
     }
 }
 
 // Print all players (for debugging)
-void print_players(PlayersTable* table) {
-    printf("Known players (%d):\n", table->count);
-    for (int i = 0; i < table->count; i++) {
-        printf("%d. IP: %s, Instance ID: %s, Last Seen: %ld\n", 
-               i+1, table->players[i].ip, table->players[i].instance_id, table->players[i].last_seen);
+void print_players(PlayersTable* Ptable) {
+    printf("Known players (%d):\n", Ptable->count);
+    for (int i = 0; i < Ptable->count; i++) {
+        printf("%d. IP: %s, Instance ID: %s, Last Seen: %ld, Nb Packets: %d\n", 
+               i+1, Ptable->players[i].ip, Ptable->players[i].instance_id, 
+               Ptable->players[i].last_seen, Ptable->players[i].PacketsCount);
     }
 }
+
+void send_discovery_broadcast(Communicator* external_communicator) {
+    char* discovery_buffer = construct_buffer(external_communicator, DISCOVERY_MESSAGE);
+    send_buffer(external_communicator, discovery_buffer);
+    free(discovery_buffer);
+    printf("[+] Sent discovery broadcast\n");
+}
+
+int handle_discovery(PacketInfo* packet, PlayersTable* players_table) {
+    char sender_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &packet->sender.sin_addr, sender_ip, INET_ADDRSTRLEN);
+
+    if (strcmp(packet->query, DISCOVERY_MESSAGE) == 0) {
+        int existed = (find_player(players_table, sender_ip) != -1);
+        add_player(players_table, sender_ip, packet->sender_id);
+        if (!existed) {
+            Communicator* reply_communicator = init_communicator(C_PORT2, ntohs(packet->sender.sin_port), sender_ip);
+            if (reply_communicator) {
+                char* reply_buffer = construct_buffer(reply_communicator, DISCOVERY_REPLY);
+                send_buffer(reply_communicator, reply_buffer);
+                free(reply_buffer);
+                cleanup_communicator(reply_communicator);
+            }
+        }
+        return 0;
+    } else if (strcmp(packet->query, DISCOVERY_REPLY) == 0) {
+        add_player(players_table, sender_ip, packet->sender_id);
+        return 0;
+    }
+    return -1;
+}
+

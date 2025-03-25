@@ -1,7 +1,7 @@
 import socket
 import select
 import time
-from network.packettransport.python.global_vars import *
+from global_vars import *
 
 class CythonCommunicator:
     def __init__(self, python_port, c_port, c_ip = DEFAULT_IP):
