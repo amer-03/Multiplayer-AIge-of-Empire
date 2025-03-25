@@ -25,6 +25,9 @@ class User:
 
 
         self.team = USER
+        self.seed = 0xba5
+
+
         self.connected = False
 
     def add_query(self, query, flag):
@@ -56,10 +59,10 @@ class User:
         current_query = None
 
         for query in self.failed_queries.copy():
-            QueryExecutor.handle_query(game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
+            QueryExecutor.handle_query(self.team, game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
 
         while ((current_query := self.get_query("r")) != None):
-            QueryExecutor.handle_query(game_map, current_query,self.query_snd_queue, self.failed_queries)
+            QueryExecutor.handle_query(self.team, game_map, current_query,self.query_snd_queue, self.failed_queries)
 
     def handle_all_snd_queries(self):
 

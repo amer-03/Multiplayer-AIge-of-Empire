@@ -8,7 +8,7 @@ import ast
 class QueryExecutor:
 
     @staticmethod
-    def exe_attack_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_attack_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0]) # int actor_id
@@ -26,7 +26,7 @@ class QueryExecutor:
 
 
     @staticmethod
-    def exe_verify_sync(game_map, actors_id, queue_snd_queue, qfailed, build_action = False):
+    def exe_verify_sync(myteam, game_map, actors_id, queue_snd_queue, qfailed, build_action = False):
 
         status = True
         for aid in actors_id:
@@ -53,7 +53,7 @@ class QueryExecutor:
         return status
 
     @staticmethod
-    def exe_villager_build_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_villager_build_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 1) # 2 args
 
@@ -70,7 +70,7 @@ class QueryExecutor:
         return True
 
     @staticmethod
-    def exe_drop_to_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_drop_to_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 1) # 2 args
 
@@ -88,7 +88,7 @@ class QueryExecutor:
         return True
 
     @staticmethod
-    def exe_collect_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_collect_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0])
@@ -105,7 +105,7 @@ class QueryExecutor:
         return True
 
     @staticmethod
-    def exe_train_unit(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_train_unit(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         args = argsf.split(":", 3) # 4 args
 
         idticket = ast.literal_eval(args[0])
@@ -126,7 +126,7 @@ class QueryExecutor:
         return True
 
     @staticmethod
-    def exe_player_build_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_player_build_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 4) # 5 args
 
@@ -148,21 +148,26 @@ class QueryExecutor:
 
         return True
 
-    def exe_create_entity_req(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_create_entity_req(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         entity_id = int(argsf) # one arg is the id of the object to send
 
         entity = game_map.get_entity_by_id(entity_id)
-        entity_json = entity.to_json()
 
-        print(f"ENTITY TO SEND:{entity_json}")
+        if entity != None:
+
+            if entity.netp == myteam:
+                entity_json = entity.to_json()
 
 
-        query = NetworkQueryFormatter.format_create_entity_rep(game_map.id_generator, entity.team, entity_json)
-        queue_snd_queue.append(query)
+                print(f"ENTITY TO SEND:{entity_json}")
+
+
+                query = NetworkQueryFormatter.format_create_entity_rep(game_map.id_generator, entity.team, entity_json)
+                queue_snd_queue.append(query)
 
         return True
 
-    def exe_create_entity_rep(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_create_entity_rep(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 2)# 3 args
 
@@ -209,7 +214,7 @@ class QueryExecutor:
         }
 
     @staticmethod
-    def handle_query(game_map, query, queue_snd_queue, failed_queries, qfailed = False):
+    def handle_query(myteam, game_map, query, queue_snd_queue, failed_queries, qfailed = False):
         status = None
 
         queryf = NetworkQueryParser.parse_query(query)
@@ -218,7 +223,7 @@ class QueryExecutor:
             fct = QueryExecutor._fct_map.get(queryf["callf"], None)
 
             if fct != None:
-                status = fct(game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
+                status = fct( game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
 
 
                 if status:

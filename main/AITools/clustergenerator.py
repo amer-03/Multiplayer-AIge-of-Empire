@@ -12,7 +12,7 @@ class ClusterGenerator:
 
     def generate_offsets(self):
 
-        chunk_string = MAIN_RANDOM.choice(self.clusters)
+        chunk_string = MAIN_RANDOM.rnd.choice(self.clusters)
         self._read_chunk(chunk_string)
 
         offsets_list = []

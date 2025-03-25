@@ -1,6 +1,12 @@
 import math
 import random
-MAIN_RANDOM = random.Random(0xba)
+
+class RandGen:
+
+    def __init__(self, seed):
+
+        self.rnd = random.Random(seed)
+MAIN_RANDOM = RandGen(0xba)
 USER = 2
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
