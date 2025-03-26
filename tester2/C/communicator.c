@@ -358,6 +358,30 @@ int add_player(PlayersTable* PTable, PacketInfo* packet) {
     
     return existing_index;
 }
+
+void cleanup_players(PlayersTable* PTable) {
+    time_t current_time = time(NULL);
+    int i = 0;
+    // Loop through the players table
+    while (i < PTable->count) {
+        // Check if the player has been inactive for too long
+        if (difftime(current_time, PTable->players[i].last_seen) > SYNC_INTERVAL) {
+            printf("[!] Removing inactive player: %s (Last seen: %ld seconds ago)\n", PTable->players[i].instance_id, (long)difftime(current_time, PTable->players[i].last_seen));
+
+            // Shift players to overwrite the removed one
+            for (int j = i; j < PTable->count - 1; j++) {
+                PTable->players[j] = PTable->players[j + 1];
+            }
+
+            PTable->count--;
+        } else {
+            // Move to the next player if current one is active
+            i++;
+        }
+    }
+}
+
+
 void remove_player(char* sender_id, PlayersTable* playersTable) {
     for (int i = 0; i < playersTable->count; i++) {
         if (strcmp(playersTable->players[i].instance_id, sender_id) == 0) {

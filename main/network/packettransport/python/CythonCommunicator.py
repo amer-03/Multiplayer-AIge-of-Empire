@@ -2,6 +2,9 @@ import socket
 import select
 import time
 from network.packettransport.python.global_vars import *
+import subprocess
+import os
+
 
 class CythonCommunicator:
     def __init__(self, python_port, c_port, c_ip = DEFAULT_IP):
@@ -17,6 +20,9 @@ class CythonCommunicator:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(('0.0.0.0', python_port))
         self.sock.setblocking(False)
+            
+        executable_path = os.path.abspath("network/packettransport/C/communicator")
+        parallel_process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, )
 
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 

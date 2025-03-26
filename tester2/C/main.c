@@ -17,8 +17,9 @@ int main() {
     
     Communicator* external_communicator = init_communicator(GAME_PORT, GAME_PORT, BROADCAST_IP);
     PlayersTable* players_table = init_player_table();
-
+    printf("==============================\n");
     printf("[+] Starting communication loop (Game Port: %d)\n", GAME_PORT);
+    printf("==============================\n");
     
     if (!players_table || !external_communicator) {
         fprintf(stderr, "Failed to initialize players table or external communicator\n");
@@ -29,13 +30,14 @@ int main() {
 
     syn_request(external_communicator);
 
-    int last_discovery_time = time(NULL);
+    int last_sync = time(NULL);
 
     while (1) {
         // Periodic discovery broadcasts
-        if (time(NULL) - last_discovery_time >= SYNC_INTERVAL) {
+        if (time(NULL) - last_sync >= SYNC_INTERVAL) {
             syn_request(external_communicator);
-            last_discovery_time = time(NULL);
+            cleanup_players(players_table);
+            last_sync = time(NULL);
         }
 
         // Reset packet memory before receiving
@@ -60,9 +62,16 @@ int main() {
             int result = process_buffer(external_communicator, &external_packet);
             if (result > 0 && external_packet.query) {
                 add_player(players_table, &external_packet);
-
                 char* buffer = construct_buffer(python_communicator, external_packet.query);
-                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) ) send_buffer(python_communicator, buffer);
+                
+                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) != 0 ){
+                    send_buffer(python_communicator, buffer);
+                }
+                
+                else if(!strcmp(external_packet.query, SYNC_QUERY)){
+                    ack_response(external_communicator);
+                }
+                
                 free(buffer);
             }
         }
@@ -73,10 +82,9 @@ int main() {
             if (result > 0 && internal_packet.query) {
                 char* buffer;
                 if(internal_packet.query[0] == 'R'){
-                    printf("REQUEST");
                     char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
                     buffer = construct_buffer(discovery_communicator, internal_packet.query);
-                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d", buffer, GAME_PORT);
+                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d:%d", buffer, GAME_PORT, players_table->count);
                     send_discovery_broadcast(discovery_communicator, request_buffer);
                     free(request_buffer);  // Free the temporary buffer
                 } else {
@@ -91,7 +99,9 @@ int main() {
             int result = process_buffer(discovery_communicator, &discovery_packet);
             if (result > 0 && discovery_packet.query) {
                 char* buffer = construct_buffer(python_communicator, discovery_packet.query);
-                if(strcmp(discovery_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
+                if(external_packet.query != NULL && strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) != 0){
+                    send_buffer(python_communicator, buffer);
+                }
                 free(buffer);
             }
         }

@@ -1,7 +1,8 @@
 #ifndef COMMUNICATOR_H
 #define COMMUNICATOR_H
 
-#define SYNC_INTERVAL 60  // Seconds between discovery broadcasts
+#define SYNC_INTERVAL 5  // Seconds between discovery broadcasts
+#define CLEANUP_INTERVAL 15  // Seconds between discovery broadcasts
 #define SYNC_QUERY "SYNC"
 #define ACK_RESPONSE "ACK"
 
@@ -76,6 +77,5 @@ void print_players(PlayersTable* Ptable);
 void send_discovery_broadcast(Communicator* external_communicator, char* DISCOVER_QUERY);
 int send_to_all(PlayersTable* Ptable, Communicator* comm, const char* buffer);
 int send_to_player(Communicator* comm, struct sockaddr_in player_addr, const char* buffer);
-
-
+void cleanup_players(PlayersTable* PTable);
 #endif // COMMUNICATOR_H
