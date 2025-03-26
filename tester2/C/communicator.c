@@ -283,10 +283,10 @@ int receive_buffer(Communicator* comm, struct sockaddr_in* sender) {
          strcpy(ip_str, "Unknown");
     }
 
-    // Log received message
+    comm->recv_buffer[recv_len] = '\0';
+
     printf("[+] Received %d bytes from %s:%d (%s)\n", recv_len, ip_str, ntohs(sender->sin_port), comm->recv_buffer);
 
-    comm->recv_buffer[recv_len] = '\0';
     return recv_len;
 }
 
@@ -304,7 +304,6 @@ int find_player(PlayersTable* Ptable, PacketInfo* packet) {
             // Player exists, update last_seen and PacketsCount
             Ptable->players[i].last_seen = time(NULL);
             Ptable->players[i].PacketsCount += 1;
-            printf("Updated existing player: %s\n", packet->sender_id);
             return i;
         }
     }
