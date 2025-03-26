@@ -108,7 +108,7 @@ class User:
 
                 carte = 0  # normal then we se if we need to change it 
 
-                if self.carte == "Carte Centrée":
+                if game_map.carte == "Carte Centrée":
                     carte = 1
 
                 query = NetworkQueryFormatter.format_discover_response(game_map.seed, game_map.nb_CellX, game_map.nb_CellY, game_map.mode, carte,game_map.num_players)
@@ -117,7 +117,7 @@ class User:
         elif queryf["headerf"] == "R":
 
             args = queryf["argsf"].split(":")
-
+            print(args)
             seed = int(args[0]) # from python 
             cellX = int(args[1]) # from python 
             cellY = int(args[2]) # from python 

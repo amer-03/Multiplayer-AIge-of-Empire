@@ -71,6 +71,8 @@ class JoinMenu:
             SELECTED_PORT = None
             HIDDEN_INFO = {}
             
+        print(ALL_PORT)
+        print(HIDDEN_INFO)
         self.game_state.user.update(0, self.game_state)
         screen_width, screen_height = self.screen.get_size()
         self.screen.blit(adjust_sprite(START_IMG, screen_width, screen_height), (0, 0))
