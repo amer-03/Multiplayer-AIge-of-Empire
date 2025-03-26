@@ -72,13 +72,16 @@ class User:
             self.communicator.send_packet(current_query)
 
 
-    def update(self, dt, game_map):
+    def update(self, dt, state):
 
 
-
+        game_map = state.map 
+        
         packet_rcvd, addr = self.communicator.receive_packet()
-        if packet_rcvd != None:
+        if packet_rcvd != None and packet_rcvd[0] == "A":
             self.add_query(packet_rcvd, "r")
+        elif packet_rcvd != None:
+            self.handle_connection_queries(packet_rcvd, game_map)
 
         if self.connected:
             self.handle_all_rcv_queries(game_map)
@@ -89,3 +92,42 @@ class User:
                 uplayer.think(dt, self.query_snd_queue)
 
         self.handle_all_snd_queries()
+
+
+
+
+    def handle_connection_queries(self, packet_rcvd, game_map):
+        global ALL_PORT
+        global HIDDEN_INFO
+        queryf = NetworkQueryParser.parse_query(packet_rcvd)
+
+        # D discovery response
+
+        if queryf["headerf"] == "D":
+            if self.connected: # in a game
+
+                carte = 0  # normal then we se if we need to change it 
+
+                if self.carte == "Carte Centrée":
+                    carte = 1
+
+                query = NetworkQueryFormatter.format_discover_response(game_map.seed, game_map.nb_CellX, game_map.nb_CellY, game_map.mode, carte,game_map.num_players)
+                self.add_query(query, "s")
+
+        elif queryf["headerf"] == "R":
+
+            args = queryf["argsf"].split(":")
+
+            seed = int(args[0]) # from python 
+            cellX = int(args[1]) # from python 
+            cellY = int(args[2]) # from python 
+            mode = int(args[3]) # from python 
+            carte = int(args[4]) # from python 
+            player_num = int(args[5]) # from python 
+
+            game_port = int(args[6]) # from c
+            current_players = int(args[7]) # from  c
+
+            ALL_PORT[port] = [cellX, cellY, mode, carte, player_num]
+            HIDDEN_INFO[port] = [seed, current_players]
+        # R bil table 

@@ -445,10 +445,9 @@ class Map:
 
         #random.seed(0xba) # <<<< ==== SEED
 
-        MAIN_RANDOM.rnd = None 
-        MAIN_RANDOM.rnd = Random(int(seed))
+       
 
-        print(f"=>> the seed used {seed}")
+        print(f"=>> the seed used {MAIN_RANDOM.seed}")
 
         if gen_mode == "Carte Centrée":
             self.generate_gold_center(num_players)
@@ -489,7 +488,7 @@ class Map:
                             tree = Tree(self.id_generator,current_Y, current_X, None)
                             tree.netp = 0 
                             self.add_entity(tree)
-            elif gen_mode == "Carte Normal":
+            elif gen_mode != "Carte Centrée":
                 cluster_offsets = gold_cluster_generator.generate_offsets()
 
                 for offset_Y, offset_X in cluster_offsets:

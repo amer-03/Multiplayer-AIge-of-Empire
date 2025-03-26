@@ -100,6 +100,7 @@ class NetworkQueryFormatter:
 
         return f"A/cerp+{idticket}:{player_team}:{JsonProcessor.to_string(entity_json)}"
 
+
     @staticmethod
     def format_discover():
 

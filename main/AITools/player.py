@@ -3,7 +3,7 @@ from GLOBAL_IMPORT import *
 from .game_event_handler import *
 from .ai_profiles import *
 from tkinter import messagebox, Button, Scale, Tk, Label, Frame, Grid, HORIZONTAL, N, W, E, S
-from random import randint,seed
+from random import randint,seed, choice
 
 import time
 
@@ -326,9 +326,18 @@ class Player:
 
 
         self.decision_tree= tree
-        strat = choose_strategy(self)
-        print(f"[+] Player n : {team}, strat : {'aggressive'}")
-        self.ai_profile = AIProfile(strategy = "aggressive", aggressiveness= strat[1], defense = strat[2])
+        #strat = choose_strategy(self)
+        #print(strat)
+        #print(f"[+] Player n : {team}, strat : {strat}")
+
+        choose = None 
+
+        if self.team == USER.id:
+            choose = choice(['defensive'])
+            print(f"My player strategy: {choose}")
+        else:
+            choose = 'aggressive'
+        self.ai_profile = AIProfile(strategy = choose)
         self.game_handler = GameEventHandler(self.linked_map,self,self.ai_profile)
 
         self.refl_acc = 0

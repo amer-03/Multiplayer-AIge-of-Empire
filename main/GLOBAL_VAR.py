@@ -4,8 +4,9 @@ import random
 class RandGen:
 
     def __init__(self, seed):
-
+        import random
         self.rnd = random.Random(seed)
+        self.seed = seed
 
 
 class Ugen:
@@ -112,34 +113,6 @@ JOIN = 6
 END = 3
 CONFIG = 5
 
-#ip
-
-ALL_IP = {
-    "172.20.10.1": [50003, "250 x 250", "Lean", 3],
-    "172.20.10.2": [50003, "300 x 300", "Mean", 4],
-    "172.20.10.3": [50003, "200 x 200", "Marines", 2],
-    "172.20.10.4": [50004, "350 x 350", "Lean", 5],
-    "172.20.10.5": [50004, "400 x 400", "Mean", 3],
-    "172.20.10.6": [50004, "450 x 450", "Marines", 6],
-    "172.20.10.7": [50005, "500 x 500", "Lean", 4],
-    "172.20.10.8": [50005, "550 x 550", "Mean", 2],
-    "172.20.10.9": [50005, "600 x 600", "Marines", 3],
-    "172.20.10.10": [50006, "650 x 650", "Lean", 5],
-    "172.20.10.11": [50006, "700 x 700", "Mean", 4],
-    "172.20.10.12": [50006, "750 x 750", "Marines", 2],
-    "172.20.10.13": [50007, "800 x 800", "Lean", 6],
-    "172.20.10.14": [50007, "850 x 850", "Mean", 5],
-    "172.20.10.15": [50007, "900 x 900", "Marines", 3]
-}
-
-
-
-SELECTED_IP = None
-
-#map
-
-MAP_NORMAL = 0
-MAP_CENTERED = 1
 
 #mode
 
@@ -153,6 +126,30 @@ BUILDINGS = ["T","C","H","F","K","S","B","A"]
 
 MILITARY_UNITS = ["h","m","s","x","c","a"]
 UNITS = ["h","m","s","x","c","a","v"]
+
+#map
+
+MAP_NORMAL = 0
+MAP_CENTERED = 1
+
+#ip
+
+ALL_PORT = {
+    50003: [ 250, 250, 0, 0, 3],
+    50004: [ 350, 350, 1, 1, 5],
+    50005: [ 500, 500, 2, 0, 4],
+    50006: [ 650, 650, 0, 0, 5],
+    50007: [ 800, 800, 1, 0, 6],
+    50033: [ 250, 250, 0, 0, 3]
+}
+
+HIDDEN_INFO = {
+    50003:[0x2, 2]
+}
+SELECTED_PORT = None
+
+mode = ["Lean", "Mean", "Marines"]
+style_map = ["Normale", "Carte Centrée"]
 
 #smart way for generation
 MODE_GENERATION = {
