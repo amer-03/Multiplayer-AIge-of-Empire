@@ -63,30 +63,71 @@ int evaluate_option(Communicator* discovery_communicator, char* query, int* port
 
 }
 
-int find_port() {
-    int sockfd;
-    struct sockaddr_in addr;
 
+int is_port_free(int port) {
+    Communicator* comm = init_communicator(port, port, BROADCAST_IP);
+    if (comm == NULL) {
+        return -1;  // Initialization failed
+    }
+
+    int last_discovery_time = time(NULL);
+    syn_request(comm);
+    
+    struct sockaddr_in sender = {0};
+    PacketInfo packet = {0};
+    
+    while(time(NULL) - last_discovery_time < 5) {
+        // Clear packet before each receive
+        memset(&packet, 0, sizeof(PacketInfo));
+        
+        int len = receive_buffer(comm, &sender);
+        if(len > 0) {
+            process_buffer(comm, &packet);
+            // Safely check if query is not NULL and matches ACK_RESPONSE
+            if(packet.query != NULL && strcmp(packet.query, ACK_RESPONSE) == 0) {
+                free(comm);
+                return 0;  // Port is not free
+            } 
+        }
+    }
+    
+    free(comm);
+    printf("FREEEEEEE");
+    return 1;  // Port is free
+}
+
+int find_port() {
+    int bind_sockfd;  // Declare bind_sockfd instead of sockfd
+    
+    // Extended range of ports to search
     for (int port = 50003; port <= 50010; port++) {
-        sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sockfd < 0) {
+        // First, check if we can bind to the port
+        bind_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        if (bind_sockfd < 0) {
             perror("Socket creation failed");
             continue;
         }
-
+        
+        struct sockaddr_in addr;
         memset(&addr, 0, sizeof(addr));
         addr.sin_family = AF_INET;
         addr.sin_addr.s_addr = INADDR_ANY;
         addr.sin_port = htons(port);
-
-        if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
-            close(sockfd);
+        
+        // Try to bind
+        if (bind(bind_sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+            close(bind_sockfd);
+            continue;
+        }
+        close(bind_sockfd);
+        
+        // If we can bind, do an additional check for port availability
+        if (is_port_free(port)) {
             return port;
         }
-
-        close(sockfd);
     }
-
+    
+    // No free port found
     return -1;
 }
 
