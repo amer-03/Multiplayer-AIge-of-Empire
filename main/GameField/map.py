@@ -641,13 +641,14 @@ class Map:
             if proj.reached_target:
                 self.remove_projectile(proj)
 
-    def update_all_dead_entities(self, dt):
+    def update_all_dead_entities(self, dt, query_snd_queue):
         for key in list(self.dead_entities.keys()):
             entity = self.dead_entities.get(key, None)
             if entity:
                 if entity.will_vanish():
                     self.dead_entities.pop(key, 0)
                     self.remove_entity(entity)
+                    query_snd_queue.append(NetworkQueryFormatter.format_remove_entity(entity.id))
 
     def update_all_entities(self, dt, camera, screen):
         battle = False
@@ -691,11 +692,11 @@ class Map:
             self.score_players.reverse()
 
 
-    def update_all_events(self, dt, camera, screen):
+    def update_all_events(self, dt, camera, screen, query_snd_queue):
         if self.state != "end":
             self.update_all_entities(dt, camera, screen)
             self.update_all_projectiles(dt)
-            self.update_all_dead_entities(dt)
+            self.update_all_dead_entities(dt, query_snd_queue)
             self.update_all_players(dt)
 
 

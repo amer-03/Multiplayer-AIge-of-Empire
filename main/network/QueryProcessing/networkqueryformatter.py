@@ -75,24 +75,6 @@ class NetworkQueryFormatter:
 
         return f"A/pbe+{idticket}:{player_team}:{actors_id}:{representation}:{entity_id}" # pbe : player_build_entity
 
-    @staticmethod
-    def format_config_req():
-
-        return f"R/config_req+{None}"
-
-    @staticmethod
-    def format_config_rep(seed, cellY, cellX, num_players, mode):
-
-        """
-        seed : map seed
-        cellY : height of the map
-        cellX : width of the map
-        num_players : number of players
-        mode : starting mode of the game
-
-        """
-
-        return f"R/config_resp+{seed}:{cellY}:{cellX}:{num_players}:{mode}"
 
     @staticmethod
     def format_create_entity_req(entity_id):
@@ -100,6 +82,13 @@ class NetworkQueryFormatter:
         entity_id : the entity id we want to request its attr
         """
         return f"A/cerq+{entity_id}"
+
+    @staticmethod
+    def format_remove_entity(entity_id):
+        """
+        entity_id : the entity id we want to remove 
+        """
+        return f"A/rm+{entity_id}"
 
     @staticmethod
     def format_create_entity_rep(id_gen, player_team, entity_json):
@@ -110,3 +99,22 @@ class NetworkQueryFormatter:
         idticket = id_gen.team_tickets.get(player_team, None) # update the id_gen for the player to client
 
         return f"A/cerp+{idticket}:{player_team}:{JsonProcessor.to_string(entity_json)}"
+
+    @staticmethod
+    def format_discover():
+
+        return f"D/dvrq+n"
+
+    @staticmethod
+    def format_join(port):
+
+        return f"J/join+{port}"
+
+    @staticmethod format_create():
+
+        return f"C/create+n"
+        
+    @staticmethod
+    def format_discover_response(seed, cellX, cellY, mode, carte, player_num):
+
+        retunr f"R/dvrp+{seed}:{cellX}:{cellY}:{mode}:{carte}:{player_num}"

@@ -103,7 +103,7 @@ class Villager(MeleeUnit):
                 if isinstance(entity, Resources):
 
                     if entity.is_dead():
-                        self.linked_map.remove_entity(entity)
+                        self.linked_map.dead_entities[entity.id] = entity
                 elif isinstance(entity, Farm):
 
                     if entity.is_empty():
