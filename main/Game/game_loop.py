@@ -221,7 +221,7 @@ class GameLoop:
 
     def update_game_state(self, dt):
         if not (self.state.states == PAUSE):
-            self.state.map.update_all_events(dt*self.state.speed, self.state.camera, self.screen)
+            self.state.map.update_all_events(dt*self.state.speed, self.state.camera, self.screen, self.state.user.query_snd_queue)
             self.state.user.update(dt*self.state.speed, self.state.map)
             self.state.endgame()
 

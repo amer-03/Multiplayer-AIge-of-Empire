@@ -30,5 +30,9 @@ class Resources(Entity):
 
         return amount
 
+    def will_vanish(self):
+
+        return self.is_dead()
+
 def get_resource_html(self):
         return f'<li class="resource">f"{DICT_RPR.get(self.representation)} : {self.position}</li>'

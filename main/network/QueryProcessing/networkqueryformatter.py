@@ -102,6 +102,13 @@ class NetworkQueryFormatter:
         return f"A/cerq+{entity_id}"
 
     @staticmethod
+    def format_remove_entity(entity_id):
+        """
+        entity_id : the entity id we want to remove 
+        """
+        return f"A/rm+{entity_id}"
+
+    @staticmethod
     def format_create_entity_rep(id_gen, player_team, entity_json):
         """
         entity_json : dict of ONLY necessary attributes to create the entity ( NO CODE, key is the name of the attr ( can't be a method ) and the value int or str or list or dict)

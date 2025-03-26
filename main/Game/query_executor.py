@@ -235,7 +235,7 @@ class QueryExecutor:
 
                 if spwninst:
                     exists.spawn_instantly()
-                    
+
             game_map.remove_entity(exists)
 
         else:
@@ -252,6 +252,22 @@ class QueryExecutor:
 
         return True
 
+
+    @staticmethod
+    def exe_remove_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+
+        entity_id = int(argsf)
+
+        entity = game_map.get_entity_by_id(entity_id)
+
+        if entity != None:
+
+            if entity.team != myteam:
+
+                game_map.remove_entity(entity)
+
+
+
     _fct_map = {
             "ae": exe_attack_entity,
             "vbe": exe_villager_build_entity,
@@ -260,7 +276,8 @@ class QueryExecutor:
             "tu": exe_train_unit,
             "pbe": exe_player_build_entity,
             "cerq": exe_create_entity_req,
-            "cerp": exe_create_entity_rep
+            "cerp": exe_create_entity_rep,
+            "rm": exe_remove_entity
         }
 
     @staticmethod
