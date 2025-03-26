@@ -261,10 +261,7 @@ class QueryExecutor:
         entity = game_map.get_entity_by_id(entity_id)
 
         if entity != None:
-
-            if entity.team != myteam:
-
-                game_map.remove_entity(entity)
+            game_map.remove_entity(entity)
 
 
 

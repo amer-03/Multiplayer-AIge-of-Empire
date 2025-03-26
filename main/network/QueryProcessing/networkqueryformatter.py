@@ -110,11 +110,12 @@ class NetworkQueryFormatter:
 
         return f"J/join+{port}"
 
-    @staticmethod format_create():
+    @staticmethod 
+    def format_create():
 
         return f"C/create+n"
         
     @staticmethod
     def format_discover_response(seed, cellX, cellY, mode, carte, player_num):
 
-        retunr f"R/dvrp+{seed}:{cellX}:{cellY}:{mode}:{carte}:{player_num}"
+        return f"R/dvrp+{seed}:{cellX}:{cellY}:{mode}:{carte}:{player_num}"
