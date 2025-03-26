@@ -59,7 +59,7 @@ int main() {
         if (external_recv_len > 0) {
             int result = process_buffer(external_communicator, &external_packet);
             if (result > 0 && external_packet.query) {
-                add_player(players_table, &external_packet)
+                add_player(players_table, &external_packet);
 
                 char* buffer = construct_buffer(python_communicator, external_packet.query);
                 if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) ) send_buffer(python_communicator, buffer);
