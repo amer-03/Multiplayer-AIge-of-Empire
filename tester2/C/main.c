@@ -94,7 +94,7 @@ int main() {
             int result = process_buffer(discovery_communicator, &discovery_packet);
             if (result > 0 && discovery_packet.query) {
                 char* buffer = construct_buffer(python_communicator, discovery_packet.query);
-                if(strcmp(external_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
+                if(strcmp(discovery_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
                 free(buffer);
             }
         }
