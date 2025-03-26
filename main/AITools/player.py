@@ -333,11 +333,11 @@ class Player:
         choose = None 
 
         if self.team == USER.id:
-            choose = choice(['defensive'])
+            choose = choice(['defensive', 'aggressive'])
             print(f"My player strategy: {choose}")
         else:
             choose = 'aggressive'
-        self.ai_profile = AIProfile(strategy = choose)
+        self.ai_profile = AIProfile(strategy = 'aggressive')
         self.game_handler = GameEventHandler(self.linked_map,self,self.ai_profile)
 
         self.refl_acc = 0
