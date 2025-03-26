@@ -24,8 +24,8 @@ class User:
         print(f"Started communicator from: {communicator_path}")
 
 
-        self.team = USER.id
-        self.seed = 0xba5
+        
+        
 
 
         self.connected = False
@@ -59,7 +59,7 @@ class User:
         current_query = None
 
         for query in self.failed_queries.copy():
-            QueryExecutor.handle_query(self.team, game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
+            QueryExecutor.handle_query(USER.id, game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
 
         while ((current_query := self.get_query("r")) != None):
             QueryExecutor.handle_query(self.team, game_map, current_query,self.query_snd_queue, self.failed_queries)
@@ -76,7 +76,6 @@ class User:
 
 
         game_map = state.map 
-        
         packet_rcvd, addr = self.communicator.receive_packet()
         if packet_rcvd != None and packet_rcvd[0] == "A":
             self.add_query(packet_rcvd, "r")
@@ -86,7 +85,8 @@ class User:
         if self.connected:
             self.handle_all_rcv_queries(game_map)
 
-            uplayer = game_map.get_player_by_team(self.team)
+            uplayer = game_map.get_player_by_team(USER.id)
+
 
             if uplayer != None:
                 uplayer.think(dt, self.query_snd_queue)
@@ -131,5 +131,5 @@ class User:
             current_players = int(args[7]) # from  c
 
             ALL_PORT[game_port] = [cellX, cellY, mode, carte, player_num]
-            HIDDEN_INFO[game_port] = [seed, current_players + 1]
+            HIDDEN_INFO[game_port] = [seed, current_players + 1 + 1]
         # R bil table 

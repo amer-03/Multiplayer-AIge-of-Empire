@@ -72,12 +72,12 @@ class GameLoop:
                     taille_x, taille_y, mode_idx, style_idx, joueurs = ALL_PORT[selected_port]
                     seed, team = HIDDEN_INFO[selected_port]
 
-                    free_team = team + 1
+                    print(seed,team)
 
-                    if free_team <=joueurs:
+                    if team <=joueurs:
                         MAIN_RANDOM.rnd = random.Random(seed)
                         MAIN_RANDOM.seed = seed
-                        USER.id = free_team
+                        USER.id = team
                         self.state.user.team = USER.id
                         # Initialisation des paramètres dans le GameState
                         self.state.set_map_size(taille_x, taille_y)

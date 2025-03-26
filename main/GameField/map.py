@@ -452,7 +452,7 @@ class Map:
         if gen_mode == "Carte Centrée":
             self.generate_gold_center(num_players)
 
-        self._place_player_starting_areas(mode, num_players, user)
+        self._place_player_starting_areas(mode, num_players)
 
         self.c_generate_clusters(num_players, gen_mode)
 
@@ -581,7 +581,7 @@ class Map:
 
                             current_player.add_population()
                             current_player.current_population += 1
-                        if not(isinstance(entity_instance, Unit) and current_player.team != user):
+                        if not(isinstance(entity_instance, Unit) and current_player.team != USER.id):
                             
                             self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x00)
                             print(f"=>>>{entity_instance}")
