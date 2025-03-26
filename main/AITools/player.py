@@ -427,11 +427,11 @@ class Player:
                 for entity_id in entity_dict:
                     entity = self.linked_map.get_entity_by_id(entity_id)
                     add = True
-
-                    if is_free and not(entity.is_free()):
-                        add = False
-                    if add:
-                        id_list.append(entity_id)
+                    if entity != None:
+                        if is_free and not(entity.is_free()):
+                            add = False
+                        if add:
+                            id_list.append(entity_id)
 
         return id_list
 
