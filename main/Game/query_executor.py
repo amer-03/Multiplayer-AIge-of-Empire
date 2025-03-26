@@ -54,12 +54,6 @@ class QueryExecutor:
                     if not(qfailed): # if this is the first time it fails we send the request
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
                 
-                elif entity.netp == None:
-                    print("getting the netp")
-                    status = False 
-                    if not(qfailed):
-                        queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
-                
                 elif isinstance(entity, Building) and not(build_action):
                     if entity.state == BUILDING_INPROGRESS:
                         print("build_instantly")

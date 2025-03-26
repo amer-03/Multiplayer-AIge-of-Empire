@@ -100,7 +100,7 @@ class User:
         global ALL_PORT
         global HIDDEN_INFO
 
-        if packet_rcvd[0] != "J":
+        if packet_rcvd[0] != "J" or packet_rcvd[0] !="C":
             queryf = NetworkQueryParser.parse_query(packet_rcvd)
 
             # D discovery response
