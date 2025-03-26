@@ -83,10 +83,18 @@ class QueryExecutor:
 
         actor = game_map.get_entity_by_id(actor_id)
 
-        if isinstance(actor, Villager) and actor.build_target_id != build_target_id:
-            actor.sync()
+        if isinstance(actor, Villager):
+            if  actor.build_target_id != build_target_id:
 
-        actor.build_entity(build_target_id)
+                actor.sync()
+
+        if isinstance(actor, Villager):
+            actor.build_entity(build_target_id)
+        else:
+            if not(qfailed):
+                queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(actor_id))
+
+            return False
 
         return True
 
@@ -105,10 +113,19 @@ class QueryExecutor:
 
         actor = game_map.get_entity_by_id(actor_id)
 
-        if isinstance(actor, Villager) and actor.build_target_id != drop_target_id:
-            actor.sync()
+        if isinstance(actor, Villager):
+            if  actor.drop_target_id != drop_target_id:
 
-        actor.drop_to_entity(drop_target_id)
+                actor.sync()
+
+        if isinstance(actor, Villager):
+            actor.drop_to_entity(drop_target_id)
+        else:
+            if not(qfailed):
+                queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(actor_id))
+
+            return False
+        
 
 
         return True
@@ -131,7 +148,12 @@ class QueryExecutor:
         if isinstance(actor, Villager):
             actor.sync()
 
-        actor.collect_entity(resource_target_id)
+        if isinstance(actor, Villager):
+            actor.collect_entity(resource_target_id)
+        else:
+            if not(qfailed):
+                queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(actor_id))
+            return False
 
         return True
 
@@ -152,8 +174,14 @@ class QueryExecutor:
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).train_unit(game_map.get_player_by_team(player_team), entity_repr)
+        actor = game_map.get_entity_by_id(actor_id)
 
+        if isinstance(actor, TrainingBuilding):
+            actor.train_unit(game_map.get_player_by_team(player_team), entity_repr)
+        else:
+            if not(qfailed):
+                queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(actor_id))
+            return False
         return True
 
     @staticmethod

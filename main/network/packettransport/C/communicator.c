@@ -432,6 +432,10 @@ int send_to_all(PlayersTable* Ptable, Communicator* comm, const char* buffer) {
             total_sent++;
         }
     }
-    if ( Ptable->count == 0 ) send_buffer(comm, buffer);
+    if ( Ptable->count == 0 ){
+        inet_pton(AF_INET, BROADCAST_IP, &comm->destination_addr.sin_addr);
+        send_buffer(comm, buffer);
+    }
+
     return total_sent;
 }
