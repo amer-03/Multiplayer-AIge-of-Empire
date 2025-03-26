@@ -201,7 +201,7 @@ class QueryExecutor:
 
         if exists:
 
-            game_map.remove_entity(obj)
+            game_map.remove_entity(exists)
 
         else:
 

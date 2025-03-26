@@ -582,7 +582,7 @@ class Map:
                             self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x00)
                             print(f"=>>>{entity_instance}")
 
-                        if entity_instance.team == user:
+                            
                             entity_instance.netp = user # prop reseaux
 
 
