@@ -2,6 +2,7 @@ from GLOBAL_VAR import *
 from idgen import *
 #from AITools.player import *
 from Entity.entity import *
+from network.QueryProcessing.networkqueryformatter import *
 class Building(Entity):
 
     def __init__(self, id_gen,cell_Y, cell_X, position, team,representation, sq_size, hp, cost, build_time, walkable = False):
@@ -104,9 +105,9 @@ class Building(Entity):
     def will_vanish(self):
         return self.is_dead() and ((self.animation_frame == self.len_current_animation_frames() - 1))
 
-    def update(self, dt, camera = None, screen = None):
+    def update(self, dt, camera = None, screen = None, query_snd_queue = None):
         self.update_animation_frame(dt)
-        self.update_construction(dt)
+        self.update_construction(dt, query_snd_queue)
 
 
     def update_builders(self):
@@ -118,7 +119,7 @@ class Building(Entity):
                     self.builders.pop(builder_id)
             else:
                 self.builders.pop(builder_id)
-    def update_construction(self, dt):
+    def update_construction(self, dt, query_snd_queue):
         if self.state == BUILDING_INPROGRESS:
             self.update_builders()
             number_of_builder = len(self.builders)
@@ -151,6 +152,8 @@ class Building(Entity):
 
                     if self.build_progress >= 1:
                         self.change_state(BUILDING_ACTIVE)
+                        if query_snd_queue != None:
+                            query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, self.to_json()))
 
     def build_instantly(self):
 

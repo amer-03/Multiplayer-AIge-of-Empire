@@ -62,7 +62,7 @@ class User:
             QueryExecutor.handle_query(USER.id, game_map, query, self.query_snd_queue, self.failed_queries, qfailed = True)
 
         while ((current_query := self.get_query("r")) != None):
-            QueryExecutor.handle_query(self.team, game_map, current_query,self.query_snd_queue, self.failed_queries)
+            QueryExecutor.handle_query(USER.id, game_map, current_query,self.query_snd_queue, self.failed_queries)
 
     def handle_all_snd_queries(self):
 

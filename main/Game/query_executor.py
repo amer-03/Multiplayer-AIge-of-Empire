@@ -265,6 +265,7 @@ class QueryExecutor:
             game_map.remove_entity(entity)
 
 
+        return True
 
     _fct_map = {
             "ae": exe_attack_entity,

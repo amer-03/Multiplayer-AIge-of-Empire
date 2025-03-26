@@ -587,7 +587,7 @@ class Map:
                             print(f"=>>>{entity_instance}")
 
                             
-                            entity_instance.netp = user # prop reseaux
+                            entity_instance.netp = USER.id # prop reseaux
 
 
             current_player_resources = gen_option.get("resources").copy() # we dont want togive it as a pointer else all players will share the same resources haha
@@ -651,7 +651,7 @@ class Map:
                     self.remove_entity(entity)
                     query_snd_queue.append(NetworkQueryFormatter.format_remove_entity(entity.id))
 
-    def update_all_entities(self, dt, camera, screen):
+    def update_all_entities(self, dt, camera, screen, query_snd_queue):
         battle = False
         for id in list(self.entity_id_dict.keys()):
 
@@ -660,7 +660,10 @@ class Map:
                 if isinstance(entity ,Unit):
                     if not(entity.is_dead()) and (entity.entity_target_id != None or entity.entity_defend_from_id != None):
                         battle = True
-                entity.update(dt, camera, screen)
+                if isinstance(entity, Building):
+                    entity.update(dt, camera, screen, query_snd_queue)
+                else:
+                    entity.update(dt, camera, screen)
 
         if battle:
             self.state = "battle"
@@ -695,7 +698,7 @@ class Map:
 
     def update_all_events(self, dt, camera, screen, query_snd_queue):
         if self.state != "end":
-            self.update_all_entities(dt, camera, screen)
+            self.update_all_entities(dt, camera, screen, query_snd_queue)
             self.update_all_projectiles(dt)
             self.update_all_dead_entities(dt, query_snd_queue)
             self.update_all_players(dt)
