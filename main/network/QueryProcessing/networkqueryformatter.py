@@ -100,6 +100,7 @@ class NetworkQueryFormatter:
 
         return f"A/cerp+{idticket}:{player_team}:{JsonProcessor.to_string(entity_json)}"
 
+
     @staticmethod
     def format_discover():
 
@@ -108,12 +109,12 @@ class NetworkQueryFormatter:
     @staticmethod
     def format_join(port):
 
-        return f"J/join+{port}"
+        return f"J{port}"
 
     @staticmethod 
     def format_create():
 
-        return f"C/create+n"
+        return f"C"
         
     @staticmethod
     def format_discover_response(seed, cellX, cellY, mode, carte, player_num):

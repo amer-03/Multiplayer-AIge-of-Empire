@@ -49,6 +49,10 @@ class GameLoop:
             self.startmenu.handle_click(event.pos, self.state)
 
     def handle_join_events(self, event):
+        global MAIN_RANDOM
+        global SELECTED_PORT
+
+        import random
         if pygame.key.get_pressed()[pygame.K_F12]:
             loaded = self.state.load()
             if loaded:
@@ -60,23 +64,35 @@ class GameLoop:
                     self.state.states = PLAY
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            selected_ip = self.joinmenu.handle_click(event.pos, self.state)
+            selected_port = self.joinmenu.handle_click(event.pos, self.state)
 
-            if selected_ip is not None:
-                print(f"[JOINMENU] IP sélectionnée : {selected_ip}")
-                if selected_ip in ALL_IP:
-                    port, taille_x, taille_y, mode_idx, style_idx, joueurs = ALL_IP[selected_ip]
+            if selected_port is not None:
+                print(f"[JOINMENU] PORT sélectionnée : {selected_port}")
+                if selected_port in ALL_PORT:
+                    taille_x, taille_y, mode_idx, style_idx, joueurs = ALL_PORT[selected_port]
+                    seed, team = HIDDEN_INFO[selected_port]
 
-                    # Initialisation des paramètres dans le GameState
-                    self.state.set_map_size(taille_x, taille_y)
-                    self.state.set_map_type(style_map[style_idx])
-                    self.state.set_difficulty_mode(mode_idx)
-                    self.state.set_players(joueurs)
-                    self.state.set_display_mode(ISO2D)  # ou TERMINAL selon ton besoin
-                    self.state.start_game()
-                    self.state.states = PLAY
+                    free_team = team + 1
 
-                    print(f"[JOIN] map: {taille_x}x{taille_y}, mode: {mode[mode_idx]}, style: {style_map[style_idx]}, joueurs: {joueurs}")
+                    if free_team <=joueurs:
+                        MAIN_RANDOM.rnd = random.Random(seed)
+                        MAIN_RANDOM.seed = seed
+                        USER.id = free_team
+                        self.state.user.team = USER.id
+                        # Initialisation des paramètres dans le GameState
+                        self.state.set_map_size(taille_x, taille_y)
+                        self.state.set_map_type(style_map[style_idx])
+                        self.state.set_difficulty_mode(mode_idx)
+                        self.state.set_players(joueurs)
+                        self.state.set_display_mode(ISO2D)  # ou TERMINAL selon ton besoin
+                        self.state.start_game()
+                        self.state.states = PLAY
+                        self.state.user.add_query(NetworkQueryFormatter.format_join(selected_port), "s")
+                        print(f"[JOIN] map: {taille_x}x{taille_y}, mode: {mode[mode_idx]}, style: {style_map[style_idx]}, joueurs: {joueurs}")
+                    else:
+                        print(f"[-] Game is FULL!")
+                        self.joinmenu.selected_port = None
+                        SELECTED_PORT = None
 
         elif event.type == pygame.MOUSEWHEEL:
             self.joinmenu.scroll(event.y)
@@ -103,6 +119,7 @@ class GameLoop:
                 self.state.set_display_mode(self.createmenu.display_mode)
                 self.state.set_players(self.createmenu.selected_player_count)
                 self.state.start_game()
+                self.state.user.add_query(NetworkQueryFormatter.format_create(), "s")
                 self.state.states = PLAY
 
                 if self.state.display_mode == TERMINAL:

@@ -1,12 +1,15 @@
 import pygame
 from GLOBAL_VAR import *
 from ImageProcessingDisplay.imagemethods import adjust_sprite
+from network.QueryProcessing.networkqueryformatter import NetworkQueryFormatter
 
 class JoinMenu:
     def __init__(self, screen, game_state):
         self.screen = screen
         self.game_state = game_state
         self.font = pygame.font.Font(MEDIEVALSHARP, 22)
+
+        self.last_time_disc = pygame.time.get_ticks()
 
         rect_width, rect_height = 750, 350
         self.players_rect = pygame.Rect(
@@ -35,7 +38,7 @@ class JoinMenu:
             self.players_rect.height
         )
 
-        self.selected_ip = None
+        self.selected_port = None
 
         # Slider de volume (lié à game_state.volume)
         self.slider_rect = pygame.Rect(screen.get_width() - 320, screen.get_height() - 50, 300, 10)
@@ -54,12 +57,27 @@ class JoinMenu:
         return (r % 256, g % 256, b % 256)
 
     def draw(self):
+        global ALL_PORT
+        global SELECTED_PORT
+        global HIDDEN_INFO
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_time_disc > (2*ONE_SEC):
+            self.last_time_disc = current_time
+            self.game_state.user.add_query(NetworkQueryFormatter.format_discover(), "s")
+            """
+            ALL_PORT = {}
+            self.selected_port = None
+            SELECTED_PORT = None
+            HIDDEN_INFO = {}
+            """
+        self.game_state.user.update(0, self.game_state)
         screen_width, screen_height = self.screen.get_size()
         self.screen.blit(adjust_sprite(START_IMG, screen_width, screen_height), (0, 0))
         pygame.draw.rect(self.screen, (0, 0, 0), self.players_rect)
 
         columns_x = [self.players_rect.x + x for x in [10, 150, 250, 370, 470, 570]]
-        headers = ["IP", "Port", "Size", "Mode", "Style", "Players"]
+        headers = ["Port", "Size", "Mode", "Style", "Players"]
         header_y = self.players_rect.y + 10
 
         for i, header in enumerate(headers):
@@ -71,8 +89,8 @@ class JoinMenu:
         clip_rect.height -= 50
         self.screen.set_clip(clip_rect)
 
-        for idx, (ip, data) in enumerate(ALL_IP.items()):
-            port, taille_x, taille_y, mode_idx, style_idx, joueurs = data
+        for idx, (port, data) in enumerate(ALL_PORT.items()):
+            taille_x, taille_y, mode_idx, style_idx, joueurs = data
             taille = f"{taille_x} x {taille_y}"
             mode_text = mode[mode_idx]
             style_text = style_map[style_idx]
@@ -80,10 +98,10 @@ class JoinMenu:
             y_pos = self.players_rect.y + 60 + (idx * self.line_height) - self.scroll_y
 
             color = self.generate_color(port, taille, mode_idx, joueurs)
-            if ip == self.selected_ip:
+            if port == self.selected_port:
                 color = (200, 200, 200)
 
-            items = [ip, str(port), taille, mode_text, style_text, str(joueurs)]
+            items = [str(port), taille, mode_text, style_text, str(joueurs)]
             for i, item in enumerate(items):
                 text = self.font.render(item, True, color)
                 self.screen.blit(text, text.get_rect(centerx=columns_x[i] + 50, y=y_pos))
@@ -100,7 +118,7 @@ class JoinMenu:
             (self.back_button.x + 35, self.back_button.y + 40)
         ])
 
-        total_lines = len(ALL_IP)
+        total_lines = len(ALL_PORT)
         total_height = total_lines * self.line_height + 60
         if total_height > self.players_rect.height:
             slider_height = max(self.players_rect.height * (self.max_visible_lines / total_lines), 30)
@@ -124,31 +142,31 @@ class JoinMenu:
         self.screen.blit(text, text.get_rect(center=(self.slider_rect.centerx, self.slider_rect.bottom + 10)))
 
     def handle_click(self, pos, game_state):
-        global SELECTED_IP
+        global SELECTED_PORT
 
         if self.back_button.collidepoint(pos):
             game_state.go_to_main_menu()
             return None
 
         if self.join_button.collidepoint(pos):
-            if self.selected_ip is not None:
-                SELECTED_IP = self.selected_ip
-                print(f"IP envoyée: {self.selected_ip}")
-                return self.selected_ip
+            if self.selected_port is not None:
+                SELECTED_PORT = self.selected_port
+                print(f"PORT envoyée: {self.selected_port}")
+                return self.selected_port
             else:
-                print("Aucune IP sélectionnée.")
+                print("Aucune PORT sélectionnée.")
                 return None
 
         if not self.players_rect.collidepoint(pos):
             pass  # clique en dehors = rien
 
-        for idx, ip in enumerate(ALL_IP.keys()):
+        for idx, port in enumerate(ALL_PORT.keys()):
             y_pos = self.players_rect.y + 60 + (idx * self.line_height) - self.scroll_y
-            ip_rect = pygame.Rect(self.players_rect.x, y_pos, self.players_rect.width, self.line_height)
+            port_rect = pygame.Rect(self.players_rect.x, y_pos, self.players_rect.width, self.line_height)
 
-            if ip_rect.collidepoint(pos):
-                self.selected_ip = ip
-                SELECTED_IP = ip
+            if port_rect.collidepoint(pos):
+                self.selected_port = port
+                SELECTED_PORT = port
                 break
 
         # Volume slider interaction
@@ -160,7 +178,7 @@ class JoinMenu:
         return None
 
     def scroll(self, direction):
-        total_height = len(ALL_IP) * self.line_height + 60
+        total_height = len(ALL_PORT) * self.line_height + 60
         if total_height > self.players_rect.height:
             self.scroll_y -= direction * 20
             self.scroll_y = max(0, min(self.scroll_y, total_height - self.players_rect.height))

@@ -46,6 +46,7 @@ class StartMenu:
 
         elif self.buttons["discover"].collidepoint(pos):
             print("Join Party clicked")
+            
             game_state.go_to_discover_menu()
             return "join"
 
