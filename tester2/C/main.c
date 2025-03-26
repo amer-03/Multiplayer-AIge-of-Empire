@@ -73,7 +73,6 @@ int main() {
         if (internal_recv_len > 0) {
             int result = process_buffer(python_communicator, &internal_packet);
             if (result > 0 && internal_packet.query) {
-                printf("Received : %s\n", internal_packet.query);
                 char* buffer;
                 if(internal_packet.query[0] == 'R'){
                     printf("REQUEST");
