@@ -22,14 +22,16 @@ class Entity():
 
         self.linked_map = None
         self.box_size = None
-        self.HitboxClass = None # char not a class
+        self.hc = None # char not a class
         self.walkable = False
+
+        self.netp = None # prop reseaux
 
     def __repr__(self):
         return f"ent<{self.id},{self.representation},Y:{self.cell_Y},X:{self.cell_X},sz:{self.sq_size}>"
 
     def collide_with_shape(self, shape):
-        Class = SHAPE_MAPPING.get(self.HitboxClass, None)
+        Class = SHAPE_MAPPING.get(self.hc, None)
 
         shape_self = Class(self.position.x, self.position.y, self.box_size)
 
@@ -37,10 +39,10 @@ class Entity():
 
     def collide_with_entity(self, entity):
 
-        Class = SHAPE_MAPPING.get(self.HitboxClass, None)
+        Class = SHAPE_MAPPING.get(self.hc, None)
         shape_self = Class(self.position.x, self.position.y, self.box_size)
 
-        entClass = SHAPE_MAPPING.get(entity.HitboxClass, None)
+        entClass = SHAPE_MAPPING.get(entity.hc, None)
         ent_shape = entClass(entity.position.x, entity.position.y, entity.box_size)
 
         Status = False

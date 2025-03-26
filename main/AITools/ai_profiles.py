@@ -27,9 +27,7 @@ class AIProfile:
             if context['player'].get_current_resources()["wood"]>=61:
                 villager_id_list = context['player'].get_entities_by_class('v',is_free=True)
 
-                result = context['player'].build_entity(villager_id_list, 'F')
-                if result != 0:
-                    query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, 'F', None))
+                result = context['player'].build_entity(villager_id_list, 'F', query_snd_queue = query_snd_queue)
 
                 return
             else :
@@ -74,13 +72,13 @@ class AIProfile:
 
             villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
 
-            result = context['player'].build_entity(villager_id_list, building_repr[0])
+            result = context['player'].build_entity(villager_id_list, building_repr[0], query_snd_queue = query_snd_queue)
 
             new_ids = set(context['player'].get_entities_by_class(['A','B','C','K','T', 'F', 'S']))
 
             new_building_ids = new_ids - existing_ids
             if result != 0:
-                query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, building_repr[0], None))
+                #query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].linked_map.id_generator, context['player'].team, villager_id_list, building_repr[0], None))
 
                 if not new_building_ids:
                     continue
@@ -235,8 +233,8 @@ class AIProfile:
                         b = context['player'].linked_map.get_entity_by_id(building)
                         rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
 
-                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
-                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
+                        if b.train_unit(context['player'], rpr, query_snd_queue = query_snd_queue) == TRAIN_SUCCESS:
+                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, b.id, context['player'].team, rpr))
 
                     # resources_to_collect=("wood",'W')
                     # for temp_resources in [("gold",'G'),("food",'F')]:
@@ -296,8 +294,8 @@ class AIProfile:
                         b = context['player'].linked_map.get_entity_by_id(building)
                         rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
 
-                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
-                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
+                        if b.train_unit(context['player'], rpr, query_snd_queue = query_snd_queue) == TRAIN_SUCCESS:
+                            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, b.id, context['player'].team, rpr))
 
                     resources_to_collect=("wood",'W')
                     for temp_resources in [("gold",'G'),("food",'F')]:
@@ -400,7 +398,7 @@ class AIProfile:
                         b = context['player'].linked_map.get_entity_by_id(building)
                         rpr = self.choose_units(context['player'].linked_map.get_entity_by_id(building))
 
-                        if b.train_unit(context['player'], rpr) == TRAIN_SUCCESS:
+                        if b.train_unit(context['player'], rpr, query_snd_queue = query_snd_queue) == TRAIN_SUCCESS:
                             query_snd_queue.append(NetworkQueryFormatter.format_train_unit(b.id, context['player'].team, rpr))
 
                     resources_to_collect=("wood",'W')

@@ -7,8 +7,6 @@ class IdGenerator:
 
     def give_ticket(self, team):
 
-
-
         team_ticket = self.get_team_ticket(team)
 
 

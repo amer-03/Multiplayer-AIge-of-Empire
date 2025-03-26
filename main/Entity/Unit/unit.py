@@ -47,7 +47,7 @@ class Unit(Entity):
         self.animation_direction = 0 # direction index for display
         self.animation_time_acc = 0
         self.animation_speed = []  # Animation frame interval in milliseconds for each unit_state
-        self.HitboxClass = "Circle"
+        self.hc = "C"
 
         self._entity_optional_target_id = None
 

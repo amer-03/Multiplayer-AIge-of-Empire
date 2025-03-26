@@ -16,7 +16,7 @@ class Building(Entity):
         self.animation_frame = 0
         self.state = BUILDING_ACTIVE
         self.animation_speed = [1, 1, 20]
-        self.HitboxClass = "Square"
+        self.hc = "S"
         self.builders = {}
         self.build_progress = 0
 
@@ -152,7 +152,7 @@ class Building(Entity):
                     if self.build_progress >= 1:
                         self.change_state(BUILDING_ACTIVE)
 
-    def spawn_instantly(self):
+    def build_instantly(self):
 
         if self.state == BUILDING_INPROGRESS:
             self.change_state(BUILDING_ACTIVE)

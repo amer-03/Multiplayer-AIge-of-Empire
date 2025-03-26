@@ -6,12 +6,18 @@ import math
 from AITools.player import *
 from AITools.clustergenerator import *
 from collections import deque
+from network.QueryProcessing.networkqueryformatter import *
 class Map:
 
     def __init__(self,_nb_CellX , _nb_CellY):
 
         self.nb_CellX = _nb_CellX
         self.nb_CellY = _nb_CellY
+        self.num_players = None
+        self.seed = None 
+        self.mode = None  
+        self.carte = None
+
         self.tile_size_2d = TILE_SIZE_2D
         self.region_division = REGION_DIVISION
         self.entity_matrix = {} #sparse matrix
@@ -57,15 +63,14 @@ class Map:
         else:
             return 0xff
 
-    def add_entity(self, _entity, from_json = False):
-
-        assert (_entity != None), 0x0001 # to check if the entity is not null in case there were some problem in the implementation
+    def check_add_entity(self, _entity, from_json = False):
 
         entity_in_matrix = (_entity.cell_X - (_entity.sq_size - 1) >= 0 and _entity.cell_Y - (_entity.sq_size - 1) >= 0) and ( _entity.cell_X < self.nb_CellX and _entity.cell_Y < self.nb_CellY)
 
         if (entity_in_matrix == False):
 
             return 0 # to check if all the cells that will be occupied by the entity are in the map
+
 
         cell_padding = 0
 
@@ -78,6 +83,17 @@ class Map:
 
                     if self.check_cell(Y_to_check, X_to_check):
                         return 0 # not all the cells are free to put the entity
+
+        return 1
+
+    def add_entity(self, _entity, from_json = False):
+
+        assert (_entity != None), 0x0001 # to check if the entity is not null in case there were some problem in the implementation
+
+
+        if not(self.check_add_entity(_entity, from_json)):
+
+            return 0
 
         for Y_to_set in range(_entity.cell_Y,_entity.cell_Y - _entity.sq_size, -1):
             for X_to_set in range(_entity.cell_X,_entity.cell_X - _entity.sq_size, -1):
@@ -144,7 +160,7 @@ class Map:
 
         return 1 # added the entity succesfully
 
-    def add_entity_to_closest(self, entity, cell_Y, cell_X, random_padding = 0x00, min_spacing = 4, max_spacing = 5):
+    def add_entity_to_closest(self, entity, cell_Y, cell_X, random_padding = 0x00, min_spacing = 4, max_spacing = 5, query_snd_q = None):
 
 
         startY = cell_Y
@@ -168,22 +184,25 @@ class Map:
             ite_list = []
 
             if random_padding:
-                offsetY = MAIN_RANDOM.randint(min_spacing, max_spacing)
-                offsetX = MAIN_RANDOM.randint(min_spacing, max_spacing)
+                offsetY = MAIN_RANDOM.rnd.randint(min_spacing, max_spacing)
+                offsetX = MAIN_RANDOM.rnd.randint(min_spacing, max_spacing)
 
             for current_Y in range(endY, (startY - 1), -offsetY):
                 for current_X in range(endX, (startX - 1), -offsetX):
                     ite_list.append((current_Y, current_X))
 
             if random_padding:
-                MAIN_RANDOM.shuffle(ite_list)
+                MAIN_RANDOM.rnd.shuffle(ite_list)
 
             for current_Y, current_X in ite_list:
                 if not(added):
                     entity.cell_Y = current_Y
                     entity.cell_X = current_X
 
-                    if (self.add_entity(entity)):
+                    if (self.check_add_entity(entity)):
+                        self.add_entity(entity)
+                        if query_snd_q != None :
+                            query_snd_q.append(NetworkQueryFormatter.format_create_entity_rep(self.id_generator, entity.team, entity.to_json()))
                         added = True
                 else:
                     break
@@ -416,23 +435,32 @@ class Map:
             current_gold = Gold(self.id_generator,center_Y, center_X, None)
             self.add_entity_to_closest(current_gold, center_Y, center_X, random_padding=0x0)
 
-    def generate_map(self,gen_mode = MAP_NORMAL , mode = MARINES ,num_players=3):
-
+    def generate_map(self,gen_mode = MAP_NORMAL , mode = MARINES ,num_players=3, user = 1, seed = 0xba):
+        global MAIN_RANDOM
+        from random import Random 
         # Ensure consistent random generation
 
         #random.seed(0xba) # <<<< ==== SEED
 
+        MAIN_RANDOM.rnd = None 
+        MAIN_RANDOM.rnd = Random(int(seed))
 
-        print(f"=>> the seed used {0xba}")
+        print(f"=>> the seed used {seed}")
 
         if gen_mode == "Carte Centrée":
             self.generate_gold_center(num_players)
 
-        self._place_player_starting_areas(mode, num_players)
+        self._place_player_starting_areas(mode, num_players, user)
 
         self.c_generate_clusters(num_players, gen_mode)
 
+        self.seed = seed 
+        self.num_players = num_players
+        self.mode = mode 
+        self.carte = gen_mode 
+
         print(f"GEN: {self.id_generator}")
+
 
     def c_generate_clusters(self, num_players, gen_mode):
 
@@ -474,15 +502,15 @@ class Map:
 
         for _ in range(forest_count):
             # Randomly pick a forest center
-            center_X = MAIN_RANDOM.randint(0, self.nb_CellX - 1)
-            center_Y = MAIN_RANDOM.randint(0, self.nb_CellY - 1)
-            forest_size = MAIN_RANDOM.randint(*forest_size_range)
+            center_X = MAIN_RANDOM.rnd.randint(0, self.nb_CellX - 1)
+            center_Y = MAIN_RANDOM.rnd.randint(0, self.nb_CellY - 1)
+            forest_size = MAIN_RANDOM.rnd.randint(*forest_size_range)
 
             GEN_DIS = 3
             for _ in range(forest_size):
                 # Generate trees around the center
-                offset_X = MAIN_RANDOM.randint(-GEN_DIS, GEN_DIS)
-                offset_Y = MAIN_RANDOM.randint(-GEN_DIS, GEN_DIS)
+                offset_X = MAIN_RANDOM.rnd.randint(-GEN_DIS, GEN_DIS)
+                offset_Y = MAIN_RANDOM.rnd.randint(-GEN_DIS, GEN_DIS)
                 tree_X = center_X + offset_X
                 tree_Y = center_Y + offset_Y
 
@@ -496,16 +524,16 @@ class Map:
 
         for _ in range(gold_veins):
             # Randomly pick a vein center
-            center_X = MAIN_RANDOM.randint(0, self.nb_CellX - 1)
-            center_Y = MAIN_RANDOM.randint(0, self.nb_CellY - 1)
-            vein_size = MAIN_RANDOM.randint(*vein_size_range)
+            center_X = MAIN_RANDOM.rnd.randint(0, self.nb_CellX - 1)
+            center_Y = MAIN_RANDOM.rnd.randint(0, self.nb_CellY - 1)
+            vein_size = MAIN_RANDOM.rnd.randint(*vein_size_range)
 
             GEN_DIS = 2
 
             for _ in range(vein_size):
                 # Generate gold around the center
-                offset_X = MAIN_RANDOM.randint(-GEN_DIS, GEN_DIS)
-                offset_Y = MAIN_RANDOM.randint(-GEN_DIS, GEN_DIS)
+                offset_X = MAIN_RANDOM.rnd.randint(-GEN_DIS, GEN_DIS)
+                offset_Y = MAIN_RANDOM.rnd.randint(-GEN_DIS, GEN_DIS)
 
                 gold_X = center_X + offset_X
                 gold_Y = center_Y + offset_Y
@@ -520,7 +548,7 @@ class Map:
 
 
 
-    def _place_player_starting_areas(self, mode, num_players):
+    def _place_player_starting_areas(self, mode, num_players, user = None):
 
         polygon = angle_distribution(self.nb_CellY, self.nb_CellX, num_players, scale=0.75, rand_rot=0x1)
         for i in range(len(polygon)):
@@ -545,12 +573,19 @@ class Map:
                     for i in range(number):
 
                         entity_instance = EntityClass(self.id_generator,None, None, None, current_player.team)
-                        if isinstance(entity_instance, Unit):
+                        if isinstance(entity_instance, Unit) and current_player.team == USER:
+
                             current_player.add_population()
                             current_player.current_population += 1
+                        if not(isinstance(entity_instance, Unit) and current_player.team != user):
+                            
+                            self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x00)
+                            print(f"=>>>{entity_instance}")
 
-                        self.add_entity_to_closest(entity_instance, current_player.cell_Y, current_player.cell_X, random_padding=0x00)
-                        print(f"=>>>{entity_instance}")
+                            
+                            entity_instance.netp = user # prop reseaux
+
+
             current_player_resources = gen_option.get("resources").copy() # we dont want togive it as a pointer else all players will share the same resources haha
             current_player.add_resources(current_player_resources)
 
@@ -688,7 +723,7 @@ def ellipse_distribution(ry, rx, Cy, Cx, angle_num, rand_rot = False):
         phi = 0
 
         if rand_rot:
-            phi += MAIN_RANDOM.uniform(0, 2 * math.pi)
+            phi += MAIN_RANDOM.rnd.uniform(0, 2 * math.pi)
 
         for i in range(angle_num):
             current_theta = i * theta + phi

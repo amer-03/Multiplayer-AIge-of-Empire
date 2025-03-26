@@ -8,111 +8,146 @@ import ast
 class QueryExecutor:
 
     @staticmethod
-    def exe_attack_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_attack_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0]) # int actor_id
         target_id = int(args[1]) # int target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, target_id], queue_snd_queue, qfailed)
-
+        sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, target_id], queue_snd_queue, qfailed)
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).attack_entity(target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.attack_entity(target_id)
 
         return True
 
 
 
     @staticmethod
-    def exe_verify_sync(game_map, actors_id, queue_snd_queue, qfailed, build_action = False):
+    def exe_verify_sync(myteam, game_map, actors_id, queue_snd_queue, qfailed, build_action = False):
 
         status = True
         for aid in actors_id:
             if aid != None:
+                print("---------")
+                print(f"id:{aid}")
                 entity = game_map.get_entity_by_id(aid)
 
                 spawner_id = game_map.units_being_trained.get(aid, None)
 
                 spawner = game_map.get_entity_by_id(spawner_id)
-                if spawner:
+
+                if spawner != None:
+                    print(f"has spawner{spawner}")
                     spawner.spawn_instantly()
 
                 elif entity == None :
+                    print("entity is None")
                     status = False
 
                     if not(qfailed): # if this is the first time it fails we send the request
                         queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
-
+                
+                elif entity.netp == None:
+                    print("getting the netp")
+                    status = False 
+                    if not(qfailed):
+                        queue_snd_queue.append(NetworkQueryFormatter.format_create_entity_req(aid))
+                
                 elif isinstance(entity, Building) and not(build_action):
                     if entity.state == BUILDING_INPROGRESS:
-                        entity.spawn_instantly()
+                        print("build_instantly")
+                        entity.build_instantly()
 
-
+                print("---------")
         return status
 
     @staticmethod
-    def exe_villager_build_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_villager_build_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0]) # int actor_id
         build_target_id = int(args[1]) # int build_target_id
-
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
+        sts = QueryExecutor.exe_verify_sync(myteam, game_map, [actor_id, build_target_id], queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
+        print(f"actinggg:{actor_id}")
 
-        game_map.get_entity_by_id(actor_id).build_entity(build_target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager) and actor.build_target_id != build_target_id:
+            actor.sync()
+
+        actor.build_entity(build_target_id)
 
         return True
 
     @staticmethod
-    def exe_drop_to_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_drop_to_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0]) # int actor_id
         drop_target_id = int(args[1]) # int drop_target_id
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, drop_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).drop_to_entity(drop_target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager) and actor.build_target_id != drop_target_id:
+            actor.sync()
+
+        actor.drop_to_entity(drop_target_id)
 
 
         return True
 
     @staticmethod
-    def exe_collect_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_collect_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         args = argsf.split(":", 1) # 2 args
 
         actor_id = int(args[0])
 
         resource_target_id = int(args[1])
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id, resource_target_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).collect_entity(resource_target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.collect_entity(resource_target_id)
 
         return True
 
     @staticmethod
-    def exe_train_unit(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
-        args = argsf.split(":", 2) # 3 args
+    def exe_train_unit(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+        args = argsf.split(":", 3) # 4 args
 
-        actor_id = int(args[0]) # int actor_id
-        player_team = int(args[1]) # int player_team
-        entity_repr = args[2] # char entity_rper
+        idticket = ast.literal_eval(args[0])
+        actor_id = int(args[1]) # int actor_id
+        player_team = int(args[2]) # int player_team
+        entity_repr = args[3] # char entity_rper
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [actor_id], queue_snd_queue, qfailed)
+        #if idticket != None:
+        game_map.id_generator.team_tickets[player_team] = idticket # update the generator
+
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [actor_id], queue_snd_queue, qfailed)
 
         if not(sts):
             return sts
@@ -122,16 +157,20 @@ class QueryExecutor:
         return True
 
     @staticmethod
-    def exe_player_build_entity(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_player_build_entity(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
 
-        args = argsf.split(":", 3) # 4 args
+        args = argsf.split(":", 4) # 5 args
 
-        player_team = int(args[0]) # int player_team
-        villager_id_list = ast.literal_eval(args[1]) # int[] villager id list
-        _representation = args[2] # char represenation = ""
-        _entity_id = ast.literal_eval(args[3]) # entity_id = None
+        idticket = ast.literal_eval(args[0])
+        player_team = int(args[1]) # int player_team
+        villager_id_list = ast.literal_eval(args[2]) # int[] villager id list
+        _representation = args[3] # char represenation = ""
+        _entity_id = ast.literal_eval(args[4]) # entity_id = None
 
-        sts = QueryExecutor.exe_verify_sync(game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
+        #if idticket != None:
+        game_map.id_generator.team_tickets[player_team] = idticket # update the generator
+
+        sts = QueryExecutor.exe_verify_sync(myteam,game_map, [_entity_id] + villager_id_list, queue_snd_queue, qfailed, build_action = True)
 
         if not(sts):
             return sts
@@ -140,23 +179,35 @@ class QueryExecutor:
 
         return True
 
-    def exe_create_entity_req(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+    def exe_create_entity_req(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
         entity_id = int(argsf) # one arg is the id of the object to send
 
         entity = game_map.get_entity_by_id(entity_id)
-        entity_json = entity.to_json()
 
-        print(f"ENTITY TO SEND:{entity_json}")
+        if entity != None:
+
+            if entity.netp == myteam:
+                entity_json = entity.to_json()
 
 
-        query = NetworkQueryFormatter.format_create_entity_rep(entity_json)
-        queue_snd_queue.append(query)
+                print(f"ENTITY TO SEND:{entity_json}")
+
+
+                query = NetworkQueryFormatter.format_create_entity_rep(game_map.id_generator, entity.team, entity_json)
+                queue_snd_queue.append(query)
 
         return True
 
-    def exe_create_entity_rep(game_map, argsf, queue_snd_queue, failed_queries, qfailed):
-        args = argsf # one arg is the string json
-        json = JsonProcessor.to_json(args)
+    def exe_create_entity_rep(myteam, game_map, argsf, queue_snd_queue, failed_queries, qfailed):
+
+        args = argsf.split(":", 2)# 3 args
+
+        idticket = ast.literal_eval(args[0])
+        player_team = int(args[1])
+
+        game_map.id_generator.team_tickets[player_team] = idticket
+
+        json = JsonProcessor.to_json(args[2])
 
         cls_name = json.pop('__class__', None)
         cls = JSON_MAPPING.get(cls_name, None)
@@ -168,12 +219,36 @@ class QueryExecutor:
 
         exists = game_map.get_entity_by_id(obj.id)
 
-        if exists:
-            return True # dont add  it
+        player = game_map.get_player_by_team(obj.team)
 
-        print(f"ENTITY CREATED :{obj}")
+        if exists:
+
+            if isinstance(exists, TownCenter):
+
+                spwninst = False 
+                if exists.unit_being_trained != None: # check spawn instantly the unit if it is different
+                    if obj.unit_being_trained != None:
+                        if exists.unit_being_trained.id != obj.unit_being_trained.id:
+                            spwninst = True  
+                    else:
+                        spwninst = True # if it is none we need to release the unit in the towncenter else it will disapear
+
+                if spwninst:
+                    exists.spawn_instantly()
+                    
+            game_map.remove_entity(exists)
+
+        else:
+
+            print(f"ENTITY CREATED :{obj}")
 
         game_map.add_entity(obj, from_json = True)
+
+        if isinstance(obj, Unit):
+                
+
+            player.add_population()
+            player.current_population += 1
 
         return True
 
@@ -189,7 +264,7 @@ class QueryExecutor:
         }
 
     @staticmethod
-    def handle_query(game_map, query, queue_snd_queue, failed_queries, qfailed = False):
+    def handle_query(myteam, game_map, query, queue_snd_queue, failed_queries, qfailed = False):
         status = None
 
         queryf = NetworkQueryParser.parse_query(query)
@@ -198,7 +273,7 @@ class QueryExecutor:
             fct = QueryExecutor._fct_map.get(queryf["callf"], None)
 
             if fct != None:
-                status = fct(game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
+                status = fct(myteam, game_map, queryf["argsf"], queue_snd_queue, failed_queries, qfailed)
 
 
                 if status:

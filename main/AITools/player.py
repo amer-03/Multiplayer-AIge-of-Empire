@@ -34,6 +34,8 @@ JSON_MAPPING['Spear'] = Spear
 JSON_MAPPING['FireArrow'] = FireArrow
 JSON_MAPPING['FireSpear'] = FireSpear
 JSON_MAPPING['PVector2'] = PVector2
+JSON_MAPPING['Storage'] = Storage
+JSON_MAPPING['Habitat'] = Habitat
 
 CLASS_MAPPING = {
     'A': ArcheryRange,
@@ -118,8 +120,8 @@ def train_villager(context, query_snd_queue): #=================================
     for towncenter_id in context['player'].get_entities_by_class(['T']):
         towncenter=context['player'].linked_map.get_entity_by_id(towncenter_id)
 
-        if towncenter.train_unit(context['player'],'v') == TRAIN_SUCCESS:
-            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(towncenter.id, context['player'].team, 'v'))
+        if towncenter.train_unit(context['player'],'v', query_snd_queue = query_snd_queue) == TRAIN_SUCCESS:
+            query_snd_queue.append(NetworkQueryFormatter.format_train_unit(context['player'].linked_map.id_generator, towncenter.id, context['player'].team, 'v'))
 
 
         if context['player'].get_current_resources()['food']<50:
@@ -174,8 +176,8 @@ def build_structure(context, query_snd_queue): #================================
 def housing_crisis(context, query_snd_queue): #==============================================
     villager_id_list = context['player'].get_entities_by_class(['v'],is_free=True)
 
-    if context['player'].build_entity(villager_id_list, 'H') == BUILDING_SUCCESS:
-        query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].team, villager_id_list, 'H', None))
+    context['player'].build_entity(villager_id_list, 'H', query_snd_queue = query_snd_queue)
+    #query_snd_queue.append(NetworkQueryFormatter.format_player_build_entity(context['player'].linked_map.id_generator, context['player'].team, villager_id_list, 'H', None))
     return "Building House!"
 
 # ---- Arbre de décision ----
@@ -337,6 +339,8 @@ class Player:
     def add_entity(self, entity):
 
 
+        if USER.id == entity.team:
+            entity.netp = USER.id 
 
         entity_dict = self.entities_dict.get(entity.representation, None)
 
@@ -423,7 +427,7 @@ class Player:
 
         return id_list
 
-    def build_entity(self, villager_id_list, representation = "", entity_id = None):
+    def build_entity(self, villager_id_list, representation = "", entity_id = None, query_snd_queue = None):
         if villager_id_list:
             if entity_id == None:
                 if (representation in ["T","H"]) and (len(self.get_entities_by_class(["T","H"])) * 5) >= MAX_UNIT_POPULATION:
@@ -433,15 +437,21 @@ class Player:
                 Instance = BuildingClass(self.linked_map.id_generator,None, None, None, self.team)
 
                 if isinstance(Instance, Building) and Instance.affordable_by(self.get_current_resources()):
+                    
                     self.remove_resources(Instance.cost)
+                    self.inform_storages(query_snd_queue)
+                    Instance.netp = self.team
                     Instance.state = BUILDING_INPROGRESS
-                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0)
+                    self.linked_map.add_entity_to_closest(Instance, self.cell_Y, self.cell_X, random_padding = 0x0, query_snd_q = query_snd_queue)
 
                     for villager_id in villager_id_list:
                         villager = self.linked_map.get_entity_by_id(villager_id)
 
                         if villager != None:
                             villager.build_entity(Instance.id)
+
+                            if query_snd_queue != None:
+                                query_snd_queue.append(NetworkQueryFormatter.format_villager_build_entity(villager.id, Instance.id))
 
                     return BUILDING_SUCCESS
                 """
@@ -451,15 +461,32 @@ class Player:
                 return 0
             else:
                 for villager_id in villager_id_list:
-                        villager = self.linked_map.get_entity_by_id(villager_id)
+                    villager = self.linked_map.get_entity_by_id(villager_id)
 
-                        if villager != None:
-                            villager.build_entity(entity_id)
+                    if villager != None:
+                        villager.build_entity(entity_id)
                 return 1
         else:
             return 0
 
+    def inform_habitats(self, query_snd_queue):
 
+        if query_snd_queue != None:
+            for hid in self.houses_id:
+                entity = self.linked_map.get_entity_by_id(hid)
+                print(f"hello habitat {entity}")
+                query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, entity.to_json()))
+
+
+    def inform_storages(self, query_snd_queue):
+        
+        if query_snd_queue != None:
+            print("===>>> INFORMAT")
+            for storage_id in self.storages_id:
+
+                entity = self.linked_map.get_entity_by_id(storage_id)
+                print(f"hello storage {entity}")
+                query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, entity.to_json()))
 
     def distribute_evenly(self, resource_type, amount):
 

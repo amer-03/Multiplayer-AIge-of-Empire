@@ -46,7 +46,7 @@ class NetworkQueryFormatter:
 
     # traning building
     @staticmethod
-    def format_train_unit(actor_id, player_team, entity_repr):
+    def format_train_unit(id_gen, actor_id, player_team, entity_repr):
         """
         actor_id : building performing the action
         player_id : team number of the player so we can get the player object from the map
@@ -54,11 +54,13 @@ class NetworkQueryFormatter:
 
         initial call is building.train_unit(player, entity_repr)
         """
-        return f"A/tu+{actor_id}:{player_team}:{entity_repr}" # tu : train_unit
+        idticket = id_gen.team_tickets.get(player_team, None) - 1
+        return f"A/tu+{idticket}:{actor_id}:{player_team}:{entity_repr}" # tu : train_unit
 
     # player
     @staticmethod
-    def format_player_build_entity(player_team, actors_id, representation = "", entity_id = None):
+    def format_player_build_entity(id_gen, player_team, actors_id, representation = "", entity_id = None):
+
         """
 
         player_team : team number of the player so we can get the player object from the MAP
@@ -69,7 +71,9 @@ class NetworkQueryFormatter:
         initial call player.build_entity(villager_id_list, representation = "", entity_id = None)
         """
 
-        return f"A/pbe+{player_team}:{actors_id}:{representation}:{entity_id}" # pbe : player_build_entity
+        idticket = id_gen.team_tickets.get(player_team, None) - 1 # - 1 cause the id has been used
+
+        return f"A/pbe+{idticket}:{player_team}:{actors_id}:{representation}:{entity_id}" # pbe : player_build_entity
 
     @staticmethod
     def format_config_req():
@@ -98,8 +102,11 @@ class NetworkQueryFormatter:
         return f"A/cerq+{entity_id}"
 
     @staticmethod
-    def format_create_entity_rep(entity_json):
+    def format_create_entity_rep(id_gen, player_team, entity_json):
         """
         entity_json : dict of ONLY necessary attributes to create the entity ( NO CODE, key is the name of the attr ( can't be a method ) and the value int or str or list or dict)
         """
-        return f"A/cerp+{JsonProcessor.to_string(entity_json)}"
+
+        idticket = id_gen.team_tickets.get(player_team, None) # update the id_gen for the player to client
+
+        return f"A/cerp+{idticket}:{player_team}:{JsonProcessor.to_string(entity_json)}"

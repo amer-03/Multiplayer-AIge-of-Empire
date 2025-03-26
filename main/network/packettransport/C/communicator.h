@@ -14,7 +14,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 5000
+#define BUFFER_SIZE 15000
 #define ID_SIZE 10
 #define SEPARATOR '~'
 
@@ -32,7 +32,9 @@
 #define EXTERNAL_PORT 50002
 
 #define LOCALHOST_IP "127.0.0.1"
-#define BROADCAST_IP "172.20.10.5"
+//#define BROADCAST_IP "192.168.155.138" // kali
+//#define BROADCAST_IP "172.20.10.2" // mint
+#define BROADCAST_IP "255.255.255.255"
 
 typedef struct {
     int sockfd;
