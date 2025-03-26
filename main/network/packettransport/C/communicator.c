@@ -408,7 +408,8 @@ void print_players(PlayersTable* Ptable) {
 }
 
 void send_discovery_broadcast(Communicator* external_communicator, char* QUERY) {
-    send_buffer(external_communicator, QUERY);
+    char* buffer = construct_buffer(external_communicator, QUERY);
+    send_buffer(external_communicator, buffer);
     printf("[+] Sent to broadcast\n");
 }
 
