@@ -7,6 +7,8 @@ int python_options(Communicator* python_communicator, Communicator* discovery_co
 int evaluate_option(Communicator* discovery_communicator, char* query, int* port);
 int find_port();
 void syn_request(Communicator* external_communicator);
+void ack_response(Communicator* external_communicator);
+int is_port_free(int port);
 
 
 #endif

@@ -17,8 +17,9 @@ int main() {
     
     Communicator* external_communicator = init_communicator(GAME_PORT, GAME_PORT, BROADCAST_IP);
     PlayersTable* players_table = init_player_table();
-
+    printf("==============================\n");
     printf("[+] Starting communication loop (Game Port: %d)\n", GAME_PORT);
+    printf("==============================\n");
     
     if (!players_table || !external_communicator) {
         fprintf(stderr, "Failed to initialize players table or external communicator\n");
@@ -60,9 +61,16 @@ int main() {
             int result = process_buffer(external_communicator, &external_packet);
             if (result > 0 && external_packet.query) {
                 add_player(players_table, &external_packet);
-
                 char* buffer = construct_buffer(python_communicator, external_packet.query);
-                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) ) send_buffer(python_communicator, buffer);
+                
+                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) != 0 ){
+                    send_buffer(python_communicator, buffer);
+                }
+                
+                else if(!strcmp(external_packet.query, SYNC_QUERY)){
+                    ack_response(external_communicator);
+                }
+                
                 free(buffer);
             }
         }
@@ -91,7 +99,9 @@ int main() {
             int result = process_buffer(discovery_communicator, &discovery_packet);
             if (result > 0 && discovery_packet.query) {
                 char* buffer = construct_buffer(python_communicator, discovery_packet.query);
-                if(strcmp(discovery_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
+                if(external_packet.query != NULL && strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) != 0){
+                    send_buffer(python_communicator, buffer);
+                }
                 free(buffer);
             }
         }
