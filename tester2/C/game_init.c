@@ -23,7 +23,6 @@ int python_options(Communicator* python_communicator, Communicator* discovery_co
         if (discovery_recv_len > 0) {
             int result = process_buffer(discovery_communicator, &discovery_packet);
             if (result > 0 && discovery_packet.query) {
-                printf("Received : %s\n", discovery_packet.query);
 				char* buffer = construct_buffer(python_communicator, discovery_packet.query);
                 send_buffer(python_communicator, buffer);
                 free(buffer);
@@ -33,7 +32,6 @@ int python_options(Communicator* python_communicator, Communicator* discovery_co
         if (internal_recv_len > 0) {
             int result = process_buffer(python_communicator, &internal_packet);
             if (result > 0 && internal_packet.query) {
-                printf("Received : %s\n", internal_packet.query);
                 evaluate_option(discovery_communicator, internal_packet.query, &port);
             }
         }
@@ -62,7 +60,6 @@ int evaluate_option(Communicator* discovery_communicator, char* query, int* port
 	return 0;
 
 }
-
 
 int is_port_free(int port) {
     Communicator* comm = init_communicator(port, port, BROADCAST_IP);
@@ -130,7 +127,6 @@ int find_port() {
     // No free port found
     return -1;
 }
-
 
 void syn_request(Communicator* external_communicator) {
     char* buffer = construct_buffer(external_communicator, SYNC_QUERY);

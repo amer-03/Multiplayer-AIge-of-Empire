@@ -81,7 +81,6 @@ int main() {
             if (result > 0 && internal_packet.query) {
                 char* buffer;
                 if(internal_packet.query[0] == 'R'){
-                    printf("REQUEST");
                     char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
                     buffer = construct_buffer(discovery_communicator, internal_packet.query);
                     snprintf(request_buffer, BUFFER_SIZE, "%s:%d", buffer, GAME_PORT);
