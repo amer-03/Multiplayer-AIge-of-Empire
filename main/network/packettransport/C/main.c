@@ -83,8 +83,7 @@ int main() {
                 char* buffer;
                 if(internal_packet.query[0] == 'R'){
                     char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
-                    buffer = construct_buffer(discovery_communicator, internal_packet.query);
-                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d:%d", buffer, GAME_PORT, players_table->count);
+                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d:%d", internal_packet.query, GAME_PORT, players_table->count);
                     send_discovery_broadcast(discovery_communicator, request_buffer);
                     free(request_buffer);  // Free the temporary buffer
                 } else {
