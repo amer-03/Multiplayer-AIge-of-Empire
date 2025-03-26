@@ -95,7 +95,7 @@ class TrainingBuilding(Building):
             display_image(META_SPRITES_CACHE_HANDLE(camera.zoom, list_keys = [self.unit_being_trained.representation + "i"], camera = camera), iso_x, iso_y, screen, 0x04, 1)
 
 
-    def update(self, dt, camera=None, screen=None, query_snd_queue):
+    def update(self, dt, camera=None, screen=None, query_snd_queue = None):
         super().update(dt, camera, screen, query_snd_queue)
         self.try_to_train(dt)
 

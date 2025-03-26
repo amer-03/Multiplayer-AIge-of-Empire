@@ -94,7 +94,7 @@ class DefensiveBuilding(Building):
             self.linked_map.add_projectile(arrow)
 
 
-    def update(self, dt, camera = None, screen = None, query_snd_queue):
+    def update(self, dt, camera = None, screen = None, query_snd_queue = None):
         super().update(dt, camera, screen, query_snd_queue)
         self.try_to_attack(dt)
 
