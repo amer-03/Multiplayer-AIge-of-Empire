@@ -15,6 +15,7 @@ class Ugen:
 
 MAIN_RANDOM = RandGen(0xba)
 USER = Ugen(1)
+
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7

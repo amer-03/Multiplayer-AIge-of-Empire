@@ -1,90 +1,109 @@
-#include "communicator.h"
-#include <unistd.h> // For sleep function
-#include <time.h>   // For time tracking
+#include "include.h"
 
 int main() {
-    Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP);
-    Communicator* external_communicator = init_communicator(C_PORT2, EXTERNAL_PORT, BROADCAST_IP);
+    PacketInfo internal_packet = {0};
+    PacketInfo external_packet = {0};
+    PacketInfo discovery_packet = {0};
 
-    if (!python_communicator || !external_communicator) {
+    Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP);
+    Communicator* discovery_communicator = init_communicator(DISCOVERY_PORT, DISCOVERY_PORT, BROADCAST_IP);
+    
+    if (!python_communicator || !discovery_communicator) {
         fprintf(stderr, "Failed to initialize communicators\n");
         return EXIT_FAILURE;
     }
 
-    printf("[+] Starting communication loop (Press Ctrl+C to exit)\n");
+    int GAME_PORT = python_options(python_communicator, discovery_communicator);
+    
+    Communicator* external_communicator = init_communicator(GAME_PORT, GAME_PORT, BROADCAST_IP);
+    PlayersTable* players_table = init_player_table();
 
-    // Variables to track packet statistics
-    int internal_total_receive = 0;
-    int external_total_receive = 0;
-    int internal_total_sent = 0;
-    int external_total_sent = 0;
-    int internal_packet_lost = 0;
-    int external_packet_lost = 0;
+    printf("[+] Starting communication loop (Game Port: %d)\n", GAME_PORT);
+    
+    if (!players_table || !external_communicator) {
+        fprintf(stderr, "Failed to initialize players table or external communicator\n");
+        cleanup_communicator(python_communicator);
+        cleanup_communicator(discovery_communicator);
+        return EXIT_FAILURE;
+    }
 
-    double internal_total_size = 0.0;
-    double external_total_size = 0.0;
+    syn_request(external_communicator);
 
-    time_t last_time = time(NULL);
+    int last_discovery_time = time(NULL);
 
     while (1) {
-        // Receive queries from both communicators
-        char* internal_query = receive_packet(python_communicator);
-        char* external_query = receive_packet(external_communicator);
+        // Periodic discovery broadcasts
+        if (time(NULL) - last_discovery_time >= SYNC_INTERVAL) {
+            syn_request(external_communicator);
+            last_discovery_time = time(NULL);
+        }
 
-        // Count received packets and track size in KB
-        if (internal_query != NULL) {
-            internal_total_receive++;
-            double size_kb = (double)strlen(internal_query) / 1024;  // Changed from MB to KB
-            internal_total_size += size_kb;
+        // Reset packet memory before receiving
+        reset_packet(&internal_packet);
+        reset_packet(&external_packet);
+        reset_packet(&discovery_packet);
 
-            if (atoi(internal_query) - internal_packet_lost != internal_total_receive) {
-                internal_packet_lost++;
+        struct sockaddr_in sender = {0};
+
+        // Receive packets only if data is available
+        int internal_recv_len = receive_buffer(python_communicator, &sender);
+        internal_packet.sender = sender;
+
+        int external_recv_len = receive_buffer(external_communicator, &sender);
+        external_packet.sender = sender;
+        
+        int discovery_recv_len = receive_buffer(discovery_communicator, &sender);
+        discovery_packet.sender = sender;
+
+        // Process external packet
+        if (external_recv_len > 0) {
+            int result = process_buffer(external_communicator, &external_packet);
+            if (result > 0 && external_packet.query) {
+                add_player(players_table, &external_packet);
+
+                char* buffer = construct_buffer(python_communicator, external_packet.query);
+                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) ) send_buffer(python_communicator, buffer);
+                free(buffer);
             }
         }
-        if (external_query != NULL) {
-            external_total_receive++;
-            double size_kb = (double)strlen(external_query) / 1024;  // Changed from MB to KB
-            external_total_size += size_kb;
 
-            if (atoi(external_query) - external_packet_lost != external_total_receive) {
-                external_packet_lost++;
+        // Process internal packet
+        if (internal_recv_len > 0) {
+            int result = process_buffer(python_communicator, &internal_packet);
+            if (result > 0 && internal_packet.query) {
+                char* buffer;
+                if(internal_packet.query[0] == 'R'){
+                    printf("REQUEST");
+                    char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
+                    buffer = construct_buffer(discovery_communicator, internal_packet.query);
+                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d", buffer, GAME_PORT);
+                    send_discovery_broadcast(discovery_communicator, request_buffer);
+                    free(request_buffer);  // Free the temporary buffer
+                } else {
+                    buffer = construct_buffer(external_communicator, internal_packet.query);
+                    send_to_all(players_table, external_communicator, buffer);
+                }
+                free(buffer);
             }
         }
 
-        // Process the external query if it exists
-        if (external_query != NULL) {
-            send_packet(python_communicator, external_query);
-            internal_total_sent++;
-        }
-
-        // Process the internal query if it exists
-        if (internal_query != NULL) {
-            send_packet(external_communicator, internal_query);
-            external_total_sent++;
-        }
-
-        // Check if 1 second has passed
-        time_t current_time = time(NULL);
-        if (difftime(current_time, last_time) >= 1.0) {
-            double internal_loss_percentage = (internal_total_receive + internal_packet_lost) == 0 ? 0.0 : 
-                (double)internal_packet_lost / (internal_total_receive + internal_packet_lost) * 100.0;
-
-            double external_loss_percentage = (external_total_receive + external_packet_lost) == 0 ? 0.0 : 
-                (double)external_packet_lost / (external_total_receive + external_packet_lost) * 100.0;
-
-            double internal_avg_size = internal_total_receive == 0 ? 0.0 : internal_total_size / internal_total_receive;
-            double external_avg_size = external_total_receive == 0 ? 0.0 : external_total_size / external_total_receive;
-
-            printf("[Packet Loss] External -> Sent: %d, Received: %d, Lost: %d (%.2f%%), Avg Size: %.2f KB\n", external_total_sent, external_total_receive, external_packet_lost, external_loss_percentage, external_avg_size);
-
-            last_time = current_time;
+        if (discovery_recv_len > 0) {
+            int result = process_buffer(discovery_communicator, &discovery_packet);
+            if (result > 0 && discovery_packet.query) {
+                char* buffer = construct_buffer(python_communicator, discovery_packet.query);
+                if(strcmp(discovery_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
+                free(buffer);
+            }
         }
 
         usleep(SLEEP_TIME);
     }
 
+    // Cleanup (this part will never be reached in the current infinite loop)
     cleanup_communicator(python_communicator);
+    cleanup_communicator(discovery_communicator);
     cleanup_communicator(external_communicator);
+    free(players_table);
 
     return EXIT_SUCCESS;
 }

@@ -262,7 +262,6 @@ class QueryExecutor:
 
         if entity != None:
 
-        
             game_map.remove_entity(entity)
 
 

@@ -1,10 +1,10 @@
-CC = gcc
+CC = gcc -g
 CFLAGS = -Wall -Wextra -O2
 TARGET = communicator
 
-SRCS = main.c communicator.c
+SRCS = main.c communicator.c game_init.c
 OBJS = $(SRCS:.c=.o)
-DEPS = communicator.h
+DEPS = communicator.h game_init.h
 
 all: $(TARGET)
 
