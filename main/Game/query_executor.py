@@ -18,7 +18,12 @@ class QueryExecutor:
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).attack_entity(target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.attack_entity(target_id)
 
         return True
 
@@ -74,7 +79,13 @@ class QueryExecutor:
         if not(sts):
             return sts
         print(f"actinggg:{actor_id}")
-        game_map.get_entity_by_id(actor_id).build_entity(build_target_id)
+
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.build_entity(build_target_id)
 
         return True
 
@@ -91,7 +102,12 @@ class QueryExecutor:
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).drop_to_entity(drop_target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.drop_to_entity(drop_target_id)
 
 
         return True
@@ -109,7 +125,12 @@ class QueryExecutor:
         if not(sts):
             return sts
 
-        game_map.get_entity_by_id(actor_id).collect_entity(resource_target_id)
+        actor = game_map.get_entity_by_id(actor_id)
+
+        if isinstance(actor, Villager):
+            actor.sync()
+
+        actor.collect_entity(resource_target_id)
 
         return True
 

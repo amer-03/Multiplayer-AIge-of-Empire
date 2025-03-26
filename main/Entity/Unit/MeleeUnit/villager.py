@@ -271,12 +271,26 @@ class Villager(MeleeUnit):
 
     def display(self, dt, screen, camera, g_width, g_height):
         super().display(dt, screen, camera, g_width, g_height)
+        ex_iso_x, ex_iso_y = camera.convert_to_isometric_2d(self.position.x - self.linked_map.tile_size_2d/2, self.position.y - self.linked_map.tile_size_2d/2)
+
         if self.is_full():
-            ex_iso_x, ex_iso_y = camera.convert_to_isometric_2d(self.position.x - self.linked_map.tile_size_2d/2, self.position.y - self.linked_map.tile_size_2d/2)
             draw_text("!",ex_iso_x, ex_iso_y, screen, int(camera.zoom * camera.img_scale*20))
+        draw_text(str(self.id),ex_iso_x, ex_iso_y, screen, int(camera.zoom * camera.img_scale*20))
 
     def change_state(self, new_state):
         super().change_state(new_state)
+
+    def sync(self): # sync villager in case he got a new task but current tasks were not done cause of the delay of the queries
+
+        if self.build_target_id != None:
+            entity = self.linked_map.get_entity_by_id(self.build_target_id)
+            print("SYNCC IN BUILD")
+            entity.build_instantly()
+            self.build_target_id = None
+
+        if self.drop_target_id != None:
+            entity = self.linked_map.get_entity_by_id(self.drop_target_id)
+            self.drop_gathered(entity)
 
 
     def is_free(self):

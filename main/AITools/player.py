@@ -468,6 +468,14 @@ class Player:
         else:
             return 0
 
+    def inform_habitats(self, query_snd_queue):
+
+        if query_snd_queue != None:
+            for hid in self.houses_id:
+                entity = self.linked_map.get_entity_by_id(hid)
+                print(f"hello habitat {entity}")
+                query_snd_queue.append(NetworkQueryFormatter.format_create_entity_rep(self.linked_map.id_generator, self.team, entity.to_json()))
+
 
     def inform_storages(self, query_snd_queue):
         
