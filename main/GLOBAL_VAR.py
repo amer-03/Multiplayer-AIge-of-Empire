@@ -14,7 +14,7 @@ class Ugen:
         self.id = id 
 
 MAIN_RANDOM = RandGen(0xba)
-USER = Ugen(1)
+USER = Ugen(2)
 INITIAL_ZOOM = 1
 MIN_ZOOM = 1
 MAX_ZOOM = 7

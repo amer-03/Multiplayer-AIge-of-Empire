@@ -96,3 +96,9 @@ void syn_request(Communicator* external_communicator) {
     send_buffer(external_communicator, buffer);
     printf("[+] Sent SYN\n");
 }
+
+void ack_response(Communicator* external_communicator) {
+    char* buffer = construct_buffer(external_communicator, ACK_RESPONSE);
+    send_buffer(external_communicator, buffer);
+    printf("[+] Sent ACK\n");
+}

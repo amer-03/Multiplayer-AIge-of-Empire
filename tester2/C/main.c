@@ -59,10 +59,12 @@ int main() {
         if (external_recv_len > 0) {
             int result = process_buffer(external_communicator, &external_packet);
             if (result > 0 && external_packet.query) {
-                if(add_player(players_table, &external_packet) >= 0) 
-                    send_to_player(external_communicator, external_packet.sender, ACK_RESPONSE);
+                if(add_player(players_table, &external_packet) >= 0){
+                    syn_request(external_communicator);
+                } 
+
                 char* buffer = construct_buffer(python_communicator, external_packet.query);
-                send_buffer(python_communicator, buffer);
+                if(strcmp(external_packet.query, ACK_RESPONSE) != 0 && strcmp(external_packet.query, SYNC_QUERY) ) send_buffer(python_communicator, buffer);
                 free(buffer);
             }
         }
@@ -92,7 +94,7 @@ int main() {
             int result = process_buffer(discovery_communicator, &discovery_packet);
             if (result > 0 && discovery_packet.query) {
                 char* buffer = construct_buffer(python_communicator, discovery_packet.query);
-                send_buffer(python_communicator, buffer);
+                if(strcmp(external_packet.query, ACK_RESPONSE)) send_buffer(python_communicator, buffer);
                 free(buffer);
             }
         }
