@@ -339,8 +339,7 @@ class Player:
     def add_entity(self, entity):
 
 
-        if USER.id == entity.team:
-            entity.netp = USER.id 
+        entity.netp = self.team
 
         entity_dict = self.entities_dict.get(entity.representation, None)
 

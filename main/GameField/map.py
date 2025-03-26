@@ -433,6 +433,7 @@ class Map:
 
         for _ in range(total_tiles):
             current_gold = Gold(self.id_generator,center_Y, center_X, None)
+            current_gold.netp = 0
             self.add_entity_to_closest(current_gold, center_Y, center_X, random_padding=0x0)
 
     def generate_map(self,gen_mode = MAP_NORMAL , mode = MARINES ,num_players=3, user = 1, seed = 0xba):
@@ -484,6 +485,7 @@ class Map:
                     if 0 <= current_X < self.nb_CellX and 0 <= current_Y < self.nb_CellY:
                         if not(self.check_cell(current_Y, current_X)):
                             tree = Tree(self.id_generator,current_Y, current_X, None)
+                            tree.netp = 0 
                             self.add_entity(tree)
             elif gen_mode == "Carte Normal":
                 cluster_offsets = gold_cluster_generator.generate_offsets()
@@ -494,6 +496,7 @@ class Map:
                     if 0 <= current_X < self.nb_CellX and 0 <= current_Y < self.nb_CellY:
                         if not(self.check_cell(current_Y, current_X)):
                             gold = Gold(self.id_generator,current_Y, current_X, None)
+                            gold.netp = 0
                             self.add_entity(gold)
             gen_n += 1
 
