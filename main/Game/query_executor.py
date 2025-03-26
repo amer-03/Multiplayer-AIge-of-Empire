@@ -42,6 +42,7 @@ class QueryExecutor:
                 spawner_id = game_map.units_being_trained.get(aid, None)
 
                 spawner = game_map.get_entity_by_id(spawner_id)
+
                 if spawner != None:
                     print(f"has spawner{spawner}")
                     spawner.spawn_instantly()
@@ -222,6 +223,9 @@ class QueryExecutor:
 
         if exists:
 
+            if isinstance(exists, TownCenter):
+                if exists.unit_being_trained.id != obj.unit_being_trained.id:
+                    exists.spawn_instantly()
             game_map.remove_entity(exists)
 
         else:

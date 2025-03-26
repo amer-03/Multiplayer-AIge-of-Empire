@@ -63,7 +63,8 @@ class TrainingBuilding(Building):
 
                     if unit.affordable_by(player.get_current_resources()):
                         if player.get_current_population_capacity() > player.current_population:
-                            #player.inform_storages(query_snd_queue)
+                            player.inform_storages(query_snd_queue)
+                            player.inform_habitats(query_snd_queue)
                             player.remove_resources(unit.cost)
                             player.add_population()
                             player.current_population += 1
