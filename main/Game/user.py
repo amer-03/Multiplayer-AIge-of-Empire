@@ -72,10 +72,11 @@ class User:
             self.communicator.send_packet(current_query)
 
 
-    def update(self, dt, game_map):
+    def update(self, dt, state):
 
 
-
+        game_map = state.map 
+        
         packet_rcvd, addr = self.communicator.receive_packet()
         if packet_rcvd != None:
             self.add_query(packet_rcvd, "r")
