@@ -80,17 +80,17 @@ int main() {
         if (internal_recv_len > 0) {
             int result = process_buffer(python_communicator, &internal_packet);
             if (result > 0 && internal_packet.query) {
-                char* buffer;
+                
                 if(internal_packet.query[0] == 'R'){
                     char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
                     snprintf(request_buffer, BUFFER_SIZE, "%s:%d:%d", internal_packet.query, GAME_PORT, players_table->count);
                     send_discovery_broadcast(discovery_communicator, request_buffer);
                     free(request_buffer);  // Free the temporary buffer
                 } else {
-                    buffer = construct_buffer(external_communicator, internal_packet.query);
+                    char* buffer = construct_buffer(external_communicator, internal_packet.query);
                     send_to_all(players_table, external_communicator, buffer);
+                    free(buffer);
                 }
-                free(buffer);
             }
         }
 
