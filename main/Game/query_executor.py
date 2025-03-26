@@ -224,8 +224,18 @@ class QueryExecutor:
         if exists:
 
             if isinstance(exists, TownCenter):
-                if exists.unit_being_trained.id != obj.unit_being_trained.id:
+
+                spwninst = False 
+                if exists.unit_being_trained != None: # check spawn instantly the unit if it is different
+                    if obj.unit_being_trained != None:
+                        if exists.unit_being_trained.id != obj.unit_being_trained.id:
+                            spwninst = True  
+                    else:
+                        spwninst = True # if it is none we need to release the unit in the towncenter else it will disapear
+
+                if spwninst:
                     exists.spawn_instantly()
+                    
             game_map.remove_entity(exists)
 
         else:
