@@ -65,12 +65,12 @@ class JoinMenu:
         if current_time - self.last_time_disc > (2*ONE_SEC):
             self.last_time_disc = current_time
             self.game_state.user.add_query(NetworkQueryFormatter.format_discover(), "s")
-            """
+            
             ALL_PORT = {}
             self.selected_port = None
             SELECTED_PORT = None
             HIDDEN_INFO = {}
-            """
+            
         self.game_state.user.update(0, self.game_state)
         screen_width, screen_height = self.screen.get_size()
         self.screen.blit(adjust_sprite(START_IMG, screen_width, screen_height), (0, 0))
