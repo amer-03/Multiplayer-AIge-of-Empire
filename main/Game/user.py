@@ -115,6 +115,7 @@ class User:
                 self.add_query(query, "s")
 
         elif queryf["headerf"] == "R":
+            print("we are in R")
 
             args = queryf["argsf"].split(":")
             print(args)
