@@ -112,6 +112,7 @@ class User:
                     carte = 1
 
                 query = NetworkQueryFormatter.format_discover_response(game_map.seed, game_map.nb_CellX, game_map.nb_CellY, game_map.mode, carte,game_map.num_players)
+                print(f"SENT CONFIGGG :{query}")
                 self.add_query(query, "s")
 
         elif queryf["headerf"] == "R":
@@ -129,6 +130,6 @@ class User:
             game_port = int(args[6]) # from c
             current_players = int(args[7]) # from  c
 
-            ALL_PORT[port] = [cellX, cellY, mode, carte, player_num]
-            HIDDEN_INFO[port] = [seed, current_players]
+            ALL_PORT[game_port] = [cellX, cellY, mode, carte, player_num]
+            HIDDEN_INFO[game_port] = [seed, current_players + 1]
         # R bil table 
