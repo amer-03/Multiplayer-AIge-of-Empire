@@ -7,7 +7,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 5000
+#define BUFFER_SIZE 15000
 #define ID_SIZE 10
 #define SEPARATOR '~'
 #define MAX_PLAYERS 100  // Added max players definition

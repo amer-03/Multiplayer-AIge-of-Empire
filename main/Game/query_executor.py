@@ -262,9 +262,8 @@ class QueryExecutor:
 
         if entity != None:
 
-            if entity.team != myteam:
-
-                game_map.remove_entity(entity)
+        
+            game_map.remove_entity(entity)
 
 
 

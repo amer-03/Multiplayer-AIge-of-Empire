@@ -42,6 +42,8 @@ class Map:
         self.id_generator = IdGenerator()
         self.state = "normal"
 
+        self.avteam = 0
+
     def get_player_by_team(self, _player_team):
         return self.players_dict.get(_player_team, None)
 
