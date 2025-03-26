@@ -83,8 +83,10 @@ class QueryExecutor:
 
         actor = game_map.get_entity_by_id(actor_id)
 
-        if isinstance(actor, Villager) and actor.build_target_id != build_target_id:
-            actor.sync()
+        if isinstance(actor, Villager):
+            if  actor.build_target_id != build_target_id:
+
+                actor.sync()
 
         if isinstance(actor, Villager):
             actor.build_entity(build_target_id)
@@ -111,8 +113,10 @@ class QueryExecutor:
 
         actor = game_map.get_entity_by_id(actor_id)
 
-        if isinstance(actor, Villager) and actor.build_target_id != drop_target_id:
-            actor.sync()
+        if isinstance(actor, Villager):
+            if  actor.drop_target_id != drop_target_id:
+
+                actor.sync()
 
         if isinstance(actor, Villager):
             actor.drop_to_entity(drop_target_id)
