@@ -30,13 +30,14 @@ int main() {
 
     syn_request(external_communicator);
 
-    int last_discovery_time = time(NULL);
+    int last_sync = time(NULL);
 
     while (1) {
         // Periodic discovery broadcasts
-        if (time(NULL) - last_discovery_time >= SYNC_INTERVAL) {
+        if (time(NULL) - last_sync >= SYNC_INTERVAL) {
             syn_request(external_communicator);
-            last_discovery_time = time(NULL);
+            cleanup_players(players_table);
+            last_sync = time(NULL);
         }
 
         // Reset packet memory before receiving
@@ -83,7 +84,7 @@ int main() {
                 if(internal_packet.query[0] == 'R'){
                     char* request_buffer = malloc(BUFFER_SIZE * sizeof(char));
                     buffer = construct_buffer(discovery_communicator, internal_packet.query);
-                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d", buffer, GAME_PORT);
+                    snprintf(request_buffer, BUFFER_SIZE, "%s:%d:%d", buffer, GAME_PORT, players_table->count);
                     send_discovery_broadcast(discovery_communicator, request_buffer);
                     free(request_buffer);  // Free the temporary buffer
                 } else {
