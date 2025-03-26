@@ -22,7 +22,7 @@ class CythonCommunicator:
         self.sock.setblocking(False)
             
         executable_path = os.path.abspath("network/packettransport/C/communicator")
-        parallel_process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, )
+        #parallel_process = subprocess.Popen([executable_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, )
 
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 

@@ -104,7 +104,7 @@ class NetworkQueryFormatter:
     @staticmethod
     def format_discover():
 
-        return f"D"
+        return f"D/dvrq+n"
 
     @staticmethod
     def format_join(port):
