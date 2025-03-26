@@ -99,37 +99,39 @@ class User:
     def handle_connection_queries(self, packet_rcvd, game_map):
         global ALL_PORT
         global HIDDEN_INFO
-        queryf = NetworkQueryParser.parse_query(packet_rcvd)
 
-        # D discovery response
+        if packet_rcvd[0] != "J":
+            queryf = NetworkQueryParser.parse_query(packet_rcvd)
 
-        if queryf["headerf"] == "D":
-            if self.connected: # in a game
+            # D discovery response
 
-                carte = 0  # normal then we se if we need to change it 
+            if queryf["headerf"] == "D":
+                if self.connected: # in a game
 
-                if game_map.carte == "Carte Centrée":
-                    carte = 1
+                    carte = 0  # normal then we se if we need to change it 
 
-                query = NetworkQueryFormatter.format_discover_response(game_map.seed, game_map.nb_CellX, game_map.nb_CellY, game_map.mode, carte,game_map.num_players)
-                print(f"SENT CONFIGGG :{query}")
-                self.add_query(query, "s")
+                    if game_map.carte == "Carte Centrée":
+                        carte = 1
 
-        elif queryf["headerf"] == "R":
-            print("we are in R")
+                    query = NetworkQueryFormatter.format_discover_response(game_map.seed, game_map.nb_CellX, game_map.nb_CellY, game_map.mode, carte,game_map.num_players)
+                    print(f"SENT CONFIGGG :{query}")
+                    self.add_query(query, "s")
 
-            args = queryf["argsf"].split(":")
-            print(args)
-            seed = int(args[0]) # from python 
-            cellX = int(args[1]) # from python 
-            cellY = int(args[2]) # from python 
-            mode = int(args[3]) # from python 
-            carte = int(args[4]) # from python 
-            player_num = int(args[5]) # from python 
+            elif queryf["headerf"] == "R":
+                print("we are in R")
 
-            game_port = int(args[6]) # from c
-            current_players = int(args[7]) # from  c
+                args = queryf["argsf"].split(":")
+                print(args)
+                seed = int(args[0]) # from python 
+                cellX = int(args[1]) # from python 
+                cellY = int(args[2]) # from python 
+                mode = int(args[3]) # from python 
+                carte = int(args[4]) # from python 
+                player_num = int(args[5]) # from python 
 
-            ALL_PORT[game_port] = [cellX, cellY, mode, carte, player_num]
-            HIDDEN_INFO[game_port] = [seed, current_players + 1 + 1]
+                game_port = int(args[6]) # from c
+                current_players = int(args[7]) # from  c
+
+                ALL_PORT[game_port] = [cellX, cellY, mode, carte, player_num]
+                HIDDEN_INFO[game_port] = [seed, current_players + 1 + 1]
         # R bil table 
